@@ -1,0 +1,212 @@
+<html>
+<head>
+<meta charset="UTF-8">
+<script type="text/javascript" src="jquery-1.7.2.min.js"></script>
+<script type="text/javascript" src="algebra.js"></script>
+<script type="text/javascript" src="graph.js"></script>
+<script type="text/javascript">
+
+/**
+	Gets the x and y values of the cursor position
+	@param {double} e The cursor position of the mouse
+	@return {Point} The x,y tuple
+**/
+function getCursorPosition(e) { //this should be refactored to return a Point
+   var x;
+   var y;
+   if (e.pageX != undefined && e.pageY != undefined) {
+       x = e.pageX;
+       y = e.pageY;
+       //console.log("Option 1: "+x+","+y);
+   } else {
+       x = e.clientX + document.body.scrollLeft +
+       document.documentElement.scrollLeft;
+       y = e.clientY + document.body.scrollTop +
+       document.documentElement.scrollTop;
+       //console.log("Option 2: "+x+","+y);
+   }
+   return {"x":x,"y":y};
+}
+
+/**
+	Finds the position of the object relative to the page
+	@param {double} obj The DOM element
+	@return {object} The left and top offsets
+**/
+function findPosition(obj)
+{
+	var curleft = 0;
+	var curtop = 0;
+	if(obj.offsetParent) {
+		do {
+			curleft += obj.offsetLeft;
+			curtop += obj.offsetTop;
+		} while (obj = obj.offsetParent);
+
+	}
+	return {"leftOffset":curleft,"topOffset":curtop};
+}
+var test = new Term(2,1,'x');
+var test2 = new Term(3,1,'x');
+var test3 = new Term(4,2,'x');
+var test4 = new Term(5,0,'x');
+var ptest = new Polynomial([test,test2,test3,test4]);
+
+
+var canvas;
+var ourGraph = new graph(-10,10,-10,10,0,[],[]);
+
+/**
+	Adds a point to the graph via the "Add point" button
+**/
+function buttonAddPoint() {
+
+	var newpoint = prompt("Enter a new point. Ex. (1,2)","");
+	var pointRe = /([-]*\d*(\.\d*)*),([-]*\d*(\.\d*)*)/;
+	var pointValues = pointRe.exec(newpoint);
+	var temp = new Point(pointValues[1],pointValues[3]);
+	ourGraph.addPoint(temp);
+}
+
+/**
+	Adds a point to the graph via a mouse click on the canvas
+**/
+function clickAdd(mevent) {
+   mevent.preventDefault();
+   var res= getCursorPosition(mevent);
+   var x = res.x;
+   var y = res.y;
+   var canvaslocation = findPosition(this);
+   x -= canvaslocation.leftOffset;
+   y -= canvaslocation.topOffset;
+   //console.log("offsets: "+canvaslocation.leftOffset+","+canvaslocation.topOffset);
+   
+   x = ourGraph.xlow+x/ourGraph.xpu();
+   y = ourGraph.ylow+(canvas.height-y)/ourGraph.ypu();
+   ourGraph.addPoint(new Point(x,y));
+
+}
+
+$(document).ready(function() {
+	canvas = document.getElementById('tehcanvas');
+	canvas.addEventListener('click',clickAdd,false);
+	var c= canvas.getContext('2d');
+	c.fillStyle= "white";
+	c.fillRect(0,0,canvas.width,canvas.height);
+	ourGraph.drawAxes();
+	$("#b_add").click(function() {
+		buttonAddPoint();
+	});
+
+	$("#b_remove").click(function() {
+		var p = $("#s_points").val();
+		ourGraph.removePoint(p);
+	});
+
+	$("#b_removeall").click(function() {
+		ourGraph.removeAllPoints();
+	});
+
+	$("#x_range").change(function() {
+		ourGraph.changeX($(this).val());
+
+	});
+
+	$("#y_range").change(function() {
+		ourGraph.changeY($(this).val());
+
+	});
+
+	$("#b_removefunc").click(function() {
+		var f = $("#s_functionlist").val();
+		ourGraph.removeFunction(f);
+					
+	});
+
+	$('input[name="f_radio"]').click(function() {
+		ourGraph.changeInterpolation($(this).val());
+	});
+
+	$("#b_removeallfunc").click(function() {
+		ourGraph.removeAllFunctions();			
+	});
+
+	$("#b_clear").click(function() {
+		
+		ourGraph.clear();
+	});
+
+	$("#s_functionlist").click(function() {
+
+		$("#f_equation p").detach();
+		$("#f_equation").append("<p>"+$("#s_functionlist").val()+"</p>");
+	});
+});
+
+</script>
+
+ <style type="text/css">
+  h1 {
+  	font-size: 20px;
+  	font-style: bold; 
+  }
+
+  p {
+  	font-style: bold;
+  }
+ </style>
+</head>
+<body bgcolor="#3f8295">
+<h1>Polynomial Interpolation Demo by Aaron R Elligsen, and Sahil Diwan</h1>
+<table>
+<tr>
+<td>
+<canvas id="tehcanvas" height="600" width="800" style="border:2px black;">
+</canvas>
+</td>
+<td>
+<p><b>Ranges may be entered like so: x1,x2 or [x1,x2]</b></p>
+<label for="x_range"><b>X-Range: </b></label>
+<input type="text" id="x_range" placeholder="[-10,10]">
+
+<br>
+<label for="y_range"><b>Y-Range: </b></label>
+<input type="text" id="y_range" placeholder="[-10,10]">
+
+<br>
+<br>
+<!--<label for="s_equation">Equation </label>
+<input type="text" id="s_equation">-->
+<br>
+<select size="10" style="width: 300px"id="s_points">
+</select>
+<br>
+<button id="b_add" value="">Add Point</button>
+<button id="b_remove" value="">Remove Point</button>
+<button id="b_removeall" value="">Remove All Points</button>
+<br>
+
+<select id="s_functionlist" size="10" style="width: 325px;">
+</select>
+<br>
+<button id="b_removefunc" value="">Remove Function</button>
+<button id="b_removeallfunc" value="">Remove All Functions</button>
+<br><br>
+<button id="b_clear" value="">Clear All</button>
+
+</td>
+<td><fieldset id="f_type">
+<legend>Function Type</legend>
+<input checked="true" type="radio" name="f_radio" id="poly" value="poly"/><label for="poly">Polynomial Interpolation</label>
+<input type="radio" name="f_radio" id="spl1" value="spline1"/><label for="spl1">1st Degree Spline</label>
+<input type="radio" name="f_radio" id="spl2" value="spline2"/><label for="spl2">2nd Degree Spline</label>
+<input type="radio" name="f_radio" id="spl3" value="spline3"/><label for="spl3">Natural Cubic Spline</label>
+</fieldset></td>
+</tr>
+</table>
+<fieldset id="f_equation">
+<legend>Selected Equation</legend>
+
+</fieldset>
+</body>
+</html>
