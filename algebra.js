@@ -344,6 +344,32 @@ Polynomial.prototype.divide = function(denominator) {
 }
 
 /**
+	Produce powers of polynomials, only works with integers currently
+	@param {Integer} exponent the power to be raised by
+	@return {Polynomial} The resulting polynomial
+**/
+Polynomial.prototype.exponentiate = function(exponent) {
+	var memoizedpowers = {};
+	var originalterm = this;
+	return (function exponentBySquares(value,exp) {
+		//if(memoized[exponent] 	
+		if(exp == 1) {
+			return value;
+		}else if(exp%2 ==1) {
+			var temp =originalterm.multiply(exponentBySquares(value.multiply(value),(exp-1)/2));
+			temp.simplify();
+			temp.sort();
+			return temp; 
+		}else{
+			var temp =exponentBySquares(value.multiply(value),(exp)/2); 
+			temp.simplify();
+			temp.sort();
+			return temp;
+		}
+	})(this,exponent);
+}
+
+/**
 	Due to the implmentation of some of the mathematical operations they generate
 	unsimplified polynomials. This corrects that.
 **/
@@ -362,7 +388,9 @@ Polynomial.prototype.simplify = function() {
 	this.terms = new Array();
 	for(var power in powers) 
 	{
-		this.terms.push(powers[power]);
+		if(powers[power].coefficient != 0) {
+			this.terms.push(powers[power]);
+		}
 	}
 }
 
@@ -380,6 +408,14 @@ Polynomial.prototype.sort = function() {
 	});
 }
 
+/**
+	Generate orthogonal polynomials to assist least square methods
+	@param {Point[]} points The data to be interpolated
+	@return {Polynomial[]} The orthogonal functions
+**/
+Polynomial.prototype.orthogonalPolynomials = function(points) {
+	
+}
 /**
 	A Class which serves to represent mathematical ranges
 	@class
@@ -502,6 +538,7 @@ function PiecewiseFunction(functs, ranges) {
 	this.toString = function() {
 		var output = "{";
 		for(var i=0; i < this.functs.length; i++) {
+			this.functs[i].sort();
 			output += "f"+i+"(x)="+this.functs[i]+" on range: "+this.ranges[i]+", ";	
 		}
 		return output+"}";
@@ -604,8 +641,7 @@ PiecewiseFunction.prototype.createSecondDegSpline = function(points, zzero) {
 		var newspline = new Term(1,1,'x');
 		var ns1 = newspline.subtract(new Term(sortedpoints[i].x,0,'x'));
 		//console.log(ns1);
-		var newquadratic = ns1.multiply(ns1);
-		newquadratic.simplify();
+		var newquadratic = ns1.exponentiate(2);
 		var nq = newquadratic.multiply((z[i+1]-z[i])/(2*(sortedpoints[i+1].x-sortedpoints[i].x)));
 		//console.log(nq);
 		var ns2 = ns1.multiply(z[i]);

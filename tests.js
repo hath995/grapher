@@ -189,6 +189,22 @@ test("Polynomial.divide", function() {
 	equal(polyx.toString(),"x","Testing polyx for side effects");
 	equal(polyc.toString(),"2","Testing polyc for side effects");
 });
+
+test("Polynomial.exponentiate", function() {
+	var x = new Term(1,1,'x');
+	var xpp = x.add(1);
+
+	equal(xpp.exponentiate(2).toString(),"x^2+2x+1","Testing basic squaring");
+	equal(xpp.exponentiate(3).toString(),"x^3+3x^2+3x+1","Testing basic cubing");
+});
+
+test("PiecewiseFunction.createSecondDegSpline", function() {
+	var Q = [new Point(0,8),new Point(1,12),new Point(3,2),new Point(4,6),new Point(8,0)];
+	var Y = [new Point(0,8),new Point(1,6),new Point(3,5),new Point(4,3),new Point(6,2),new Point(8,0)];
+	var Z = [new Point(-1,2),new Point(0,1),new Point(0.5,0),new Point(1,1),new Point(2,2),new Point(5/2.0,3)];
+	equal(PiecewiseFunction.prototype.createSecondDegSpline(Z).toString(),"{f0(x)=-x^2-2x+1 on range: [-1,0), f1(x)=-2x+1 on range: [0,0.5), f2(x)=8x^2-10x+3 on range: [0.5,1), f3(x)=-5x^2+16x-10 on range: [1,2), f4(x)=12x^2-52x+58 on range: [2,2.5], }","Basic test of second degree spline.");
+});
+
 /*
 test("Range", function() {
 	var badinput = "3,4";
