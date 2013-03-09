@@ -29,12 +29,16 @@ test("Term.add", function() {
 	var x = new Term(1,1,'x');
 	var y = new Term(1,1,'y');
 	var c = new Term(2,0,'x');
+	var d = new Term(2,0,'y');
 	var poly = new Polynomial([x,c]);
 	equal(x.add(x).toString(),"2x","Adding like terms");
 	equal(x.add(c).toString(),"x+2","Adding a constant term");
 	equal(x.add(5).toString(),"x+5","Adding a constant literal");
 	equal(x.add(y).toString(),"x+y","Adding a term of a different variable");
 	equal(x.add(poly).toString(),"2x+2","Adding a polynomial to a term");
+	equal(c.add(d).toString(),"2+2","Adding a constant of a different variable to another.");
+	//The above test looks wrong but in reality is fine because this situation is solved 
+	//by the simplify method.
 	equal(x.toString(),"x","Testing x for side effects");
 	equal(y.toString(),"y","Testing y for side effects");
 	equal(c.toString(),"2","Testing c for side effects");
@@ -96,6 +100,19 @@ test("Term.divide", function() {
 	equal(poly.toString(),"x+2","Testing poly for side effects");
 });
 
+test("Term.resolve", function() {
+	var zeroc = new Term(0,0,'x');
+	var zerox = new Term(0,1,'x');
+	var identity = new Term(1,1,'x');
+	var xsquared = new Term(1,2,'x');
+	var yfunction= new Term(3,3,'y');
+	equal(zeroc.resolve(1),"0","Testing for zero constant");	
+	equal(zerox.resolve(1),"0","Testing for zero function");	
+	equal(identity.resolve(1),"1","Testing for identity function");	
+	equal(xsquared.resolve(2),"4","Testing for xsquared function");	
+	equal(yfunction.resolve(2),"24","Testing for yfunction");	
+});
+
 test("Polynomial.toString", function() {
 	var x = new Term(1,1,'x');
 	var y = new Term(1,1,'y');
@@ -122,10 +139,11 @@ test("Polynomial.add", function() {
 	var polyxc = new Polynomial([x,c]);
 	var polyxyc = new Polynomial([x,y,c]);
 	equal(polyx.add(polyx).toString(),"2x","Adding a monomial Polynomial to another monomial Polynomial");
-	equal(polyx.add(polyy).toString(),"y+x","Adding a monomial Polynomial to a different variable monomial Polynomial");
+	equal(polyx.add(polyy).toString(),"x+y","Adding a monomial Polynomial to a different variable monomial Polynomial");
 	equal(polyx.add(polyc).toString(),"x+2","Adding a monomial Polynomial to another monomial Polynomial constant");
 
 	equal(polyx.add(x).toString(),"2x","Adding a monomial Polynomial to a term");
+	equal(x.add(polyx).toString(),"2x","Adding a monomial Polynomial to a term commutatively");
 	equal(polyx.add(xsquared).toString(),"3x^2+x","Adding a monomial Polynomial to a higher power term");
 	equal(polyx.add(y).toString(),"x+y","Adding a monomial Polynomial to term of a different variable");
 
@@ -151,7 +169,7 @@ test("Polynomial.subtract", function() {
 	var polyxc = new Polynomial([x,c]);
 	var polyxyc = new Polynomial([x,y,c]);
 	equal(polyx.subtract(polyx).toString(),"","Subtracting a monomial Polynomial to another monomial Polynomial");
-	equal(polyx.subtract(polyy).toString(),"-y+x","Subtracting a monomial Polynomial to a different variable monomial Polynomial");
+	equal(polyx.subtract(polyy).toString(),"x-y","Subtracting a monomial Polynomial to a different variable monomial Polynomial");
 	equal(polyx.subtract(polyc).toString(),"x-2","Subtracting a monomial Polynomial to another monomial Polynomial constant");
 
 	equal(polyx.subtract(x).toString(),"","Subtracting a monomial Polynomial to a term");
@@ -225,6 +243,38 @@ test("Polynomial.exponentiate", function() {
 
 	equal(xpp.exponentiate(2).toString(),"x^2+2x+1","Testing basic squaring");
 	equal(xpp.exponentiate(3).toString(),"x^3+3x^2+3x+1","Testing basic cubing");
+});
+
+test("Polynomial.simplify", function() {
+
+	var x = new Term(1,1,'x');
+	var y = new Term(1,1,'y');
+	var c = new Term(2,0,'x');
+	var polyxyc = new Polynomial([x,y,c]);
+	var fivex = new Polynomial([x,x,x,x,x]);
+	var threey = new Polynomial([y,y,y]);
+	var fivexthreey = new Polynomial([x,x,x,x,x,y,y,y]);
+	var cminusc = new Polynomial([c,c.neg()]);
+
+	var differentpowers = new Polynomial([x,x.exponentiate(2).multiply(3),x.exponentiate(3)]);
+	differentpowers.simplify();
+	equal(differentpowers.toString(),"x+3x^2+x^3","Testing for no simplification of different powers");	
+
+	var differentpowerswithsum = new Polynomial([x,x,x.exponentiate(2).multiply(3),x.exponentiate(2),x.exponentiate(3)]);
+	differentpowerswithsum.simplify();
+	equal(differentpowerswithsum.toString(),"2x+4x^2+x^3","Testing simplification of different powers");	
+
+	cminusc.simplify();
+	equal(cminusc,"","Testing for zero");
+	
+	fivex.simplify();
+	equal(fivex.toString(),"5x","Testing fivex for simplification");
+
+	threey.simplify();
+	equal(threey.toString(),"3y","Testing threey for simplification");
+
+	polyxyc.simplify();	
+	equal(polyxyc.toString(),"2+x+y","Testing polyxyc for simplification");
 });
 
 test("Polynomial.orthogonalPolynomials", function() {

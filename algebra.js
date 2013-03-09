@@ -13,6 +13,11 @@
 	@param {double} coefficient The coefficient of the term.
 	@param {double} power The power of the variable in the term.
 	@param {string} variable The name of the variable involved in the term
+	@todo: convert all power and variable code to work with objects
+		then implement the Term contructor to generate the correct structure using exiting code
+		implement isMatchingVariable
+		immplement isMathchingPowers
+		fix the resolve functions to yield partial functions
 **/
 function Term(coefficient, power, variable)
 {
@@ -59,7 +64,8 @@ Term.prototype.add = function(summand) {
 		return summand.add(this);
 	}else if(typeof summand === "number") {
 		var constant = new Term(summand,0,this.variable);
-		return new Polynomial([this,constant]);
+		var newpoly = new Polynomial([this,constant]);
+		return newpoly; 
 	}
 }
 
@@ -131,6 +137,16 @@ Term.prototype.divide = function(denominator) {
 			tempterm.power = this.power;
 	}
 	return tempterm;
+}
+
+/**
+	Produce powers of a Term 
+	@param {Integer} exponent the power to be raised by
+	@return {Term} the power of the input
+**/
+Term.prototype.exponentiate = function(exponent) {
+	return new Term(Math.pow(this.coefficient,exponent),this.power*exponent,this.variable);
+
 }
 
 /**
@@ -431,21 +447,37 @@ Polynomial.prototype.exponentiate = function(exponent) {
 **/
 Polynomial.prototype.simplify = function() {
 	var  powers = {};
+	var  constants = 0;
 	for(var i =0; i < this.terms.length; i++)
 	{
-		var p = ""+this.terms[i].power;
-		if(powers[p] === undefined)
+		var v = this.terms[i].variable;
+		if(powers[v] === undefined)
 		{
-			powers[p] = this.terms[i];
+			powers[v] = {};
+		}
+		var p = ""+this.terms[i].power;
+		if(p == "0")
+		{
+			constants += this.terms[i].coefficient;	
+		}else if(powers[v][p] === undefined) {
+			powers[v][p] = this.terms[i];
 		}else{
-			powers[p] = this.terms[i].add(powers[p]);
+			powers[v][p] = this.terms[i].add(powers[v][p]);
 		}
 	}
-	this.terms = new Array();
-	for(var power in powers) 
+	var oldterms = this.terms.slice();
+	this.terms = [];
+	if(constants != 0) {
+		var constantvariable = oldterms[0].variable;	
+		this.terms.push(new Term(constants,0,constantvariable));
+	}
+	for(var variable in powers) 
 	{
-		if(powers[power].coefficient != 0) {
-			this.terms.push(powers[power]);
+		for(var power in powers[variable]) 
+		{
+			if(powers[variable][power].coefficient != 0) {
+				this.terms.push(powers[variable][power]);
+			}
 		}
 	}
 }
