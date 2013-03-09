@@ -751,7 +751,7 @@ PiecewiseFunction.prototype.createSecondDegSpline = function(points, zzero) {
 	@author Sahil Diwan
 	@param {Point[]} points An array of points to interpolate
 	@return {PiecewiseFunction} A piecewise function using polynomials of degree three
-	@todo: IMPLEMENT algorithm on page 392
+	IMPLEMENTED algorithm on page 392
 **/
 PiecewiseFunction.prototype.createThirdDegSpline = function(points) {
 	if(points.length < 2)
