@@ -52,7 +52,7 @@ test("Term.subtract",function() {
 	equal(x.subtract(twox).subtract(twox).toString(),"-3x","repeated subtracting like terms");
 	equal(x.subtract(5).toString(),"x-5","subtracting a constant literal");
 	equal(x.subtract(y).toString(),"x-y","subtracting a term of a different variable");
-	//equal(x.subtract(poly).toString(),"2x+2","Adding a term of a different variable");//not yet implemented
+	equal(x.subtract(poly).toString(),"-2","Adding a term of a different variable");
 
 	equal(x.toString(),"x","Testing x for side effects");
 	equal(twox.toString(),"2x","Testing x for side effects");
@@ -140,6 +140,35 @@ test("Polynomial.add", function() {
 	equal(polyxyc.toString(),"x+y+2","Testing polyxyc for side effects");
 });
 
+test("Polynomial.subtract", function() {
+	var x = new Term(1,1,'x');
+	var xsquared = new Term(3,2,'x');
+	var y = new Term(1,1,'y');
+	var c = new Term(2,0,'x');
+	var polyx = new Polynomial([x]);
+	var polyy = new Polynomial([y]);
+	var polyc = new Polynomial([c]);
+	var polyxc = new Polynomial([x,c]);
+	var polyxyc = new Polynomial([x,y,c]);
+	equal(polyx.subtract(polyx).toString(),"","Subtracting a monomial Polynomial to another monomial Polynomial");
+	equal(polyx.subtract(polyy).toString(),"-y+x","Subtracting a monomial Polynomial to a different variable monomial Polynomial");
+	equal(polyx.subtract(polyc).toString(),"x-2","Subtracting a monomial Polynomial to another monomial Polynomial constant");
+
+	equal(polyx.subtract(x).toString(),"","Subtracting a monomial Polynomial to a term");
+	equal(polyx.subtract(xsquared).toString(),"-3x^2+x","Subtracting a monomial Polynomial to a higher power term");
+	equal(polyx.subtract(y).toString(),"x-y","Subtracting a monomial Polynomial to term of a different variable");
+
+	equal(x.toString(),"x","Testing x for side effects");
+	equal(xsquared.toString(),"3x^2","Testing xsquared for side effects");
+	equal(y.toString(),"y","Testing y for side effects");
+	equal(c.toString(),"2","Testing c for side effects");
+	equal(polyxc.toString(),"x+2","Testing polyxc for side effects");
+	equal(polyx.toString(),"x","Testing polyx for side effects");
+	equal(polyy.toString(),"y","Testing polyy for side effects");
+	equal(polyc.toString(),"2","Testing polyc for side effects");
+	equal(polyxyc.toString(),"x+y+2","Testing polyxyc for side effects");
+});
+
 test("Polynomial.multiply", function() {
 	var x = new Term(1,1,'x');
 	var xsquared = new Term(3,2,'x');
@@ -196,6 +225,21 @@ test("Polynomial.exponentiate", function() {
 
 	equal(xpp.exponentiate(2).toString(),"x^2+2x+1","Testing basic squaring");
 	equal(xpp.exponentiate(3).toString(),"x^3+3x^2+3x+1","Testing basic cubing");
+});
+
+test("Polynomial.orthogonalPolynomials", function() {
+	var simple = [0,1,2];
+	var symm = [-2,-1,0,1,2];
+	function stringizer(ary) {
+		var res = "";
+		for(var i =0; i< ary.length; i++)
+		{
+			res += ary[i].toString()+" ";
+		}
+		return "["+res+"]";
+	}
+	equal(stringizer(Polynomial.prototype.orthogonalPolynomials(symm,2)),"[1 x x^2-2 ]","A basic test generating orthogonal polynomials");
+	equal(stringizer(Polynomial.prototype.orthogonalPolynomials(simple,1)),"[1 x-1 ]","Another basic test generating orthogonal polynomials");
 });
 
 test("PiecewiseFunction.createSecondDegSpline", function() {

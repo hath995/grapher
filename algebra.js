@@ -72,6 +72,13 @@ Term.prototype.subtract = function(summand) {
 	if(summand instanceof Term)
 	{
 		return this.add(summand.neg());
+	}else if(summand instanceof Polynomial) {
+		var newpoly = summand.terms.slice();
+		for(var i=0; i< newpoly.length; i++) {
+			newpoly[i] = newpoly[i].neg();
+		}
+		var difference = new Polynomial(newpoly);
+		return difference.add(this);
 	}else if(typeof summand === "number") {
 		var constant = new Term(0-summand,0,this.variable);
 		return new Polynomial([this,constant]);
@@ -300,6 +307,55 @@ Polynomial.prototype.add = function(summand) {
 };
 
 /**
+	Subtract one of several object to a polynomial
+	@param {Term|Polynomial|number} subtrahend A Term, or Polynomial, or number to be added
+	@return {Polynomial} The difference
+*/
+Polynomial.prototype.subtract = function(subtrahend) {
+	if(subtrahend instanceof Polynomial)
+	{
+		var sbt = subtrahend.terms.slice();
+		for(var i = 0; i < sbt.length; i++) {
+			sbt[i] = sbt[i].neg();
+		}
+		var temppolynomial = new Polynomial(this.terms.concat(sbt));
+		temppolynomial.simplify();
+		temppolynomial.sort();
+		return temppolynomial;
+	}else if(subtrahend instanceof Term) {
+		var matchingpower = false;
+		var temppolynomial = new Polynomial(this.terms.slice()); 
+		for(var i =0; i <this.terms.length; i++)
+		{
+			if(this.terms[i].power == subtrahend.power)
+			{
+				temppolynomial.terms[i] = this.terms[i].subtract(subtrahend);
+				matchingpower = true;
+				break;
+			}
+		}
+		if(!matchingpower)
+		{
+			temppolynomial.terms.push(subtrahend.neg());
+		}
+		temppolynomial.sort();
+		return temppolynomial;
+	}else if(typeof subtrahend === "number") {
+		var temppolynomial = new Polynomial(this.terms.slice());
+		var variable = 'x';
+		if(this.terms != undefined)
+		{
+			variable = this.terms[0].variable;
+		}
+		var tempterm = new Term(0-subtrahend,0, variable);
+		temppolynomial.terms.push(tempterm);
+		temppolynomial.simplify();
+		return temppolynomial;	
+	}
+
+};
+
+/**
 	Multiply a polynomial by something
 	@param {Polynomial|Term|number} multiplicand The item to be multiplied by
 	@return {Polynomial} The product
@@ -410,11 +466,47 @@ Polynomial.prototype.sort = function() {
 
 /**
 	Generate orthogonal polynomials to assist least square methods
-	@param {Point[]} points The data to be interpolated
+	@param {Number[]} points The x values of data to be interpolated
+	@param {Integer} power The highest power of orthogonal polynomial desired
 	@return {Polynomial[]} The orthogonal functions
 **/
-Polynomial.prototype.orthogonalPolynomials = function(points) {
-	
+Polynomial.prototype.orthogonalPolynomials = function(points, power) {
+	if((typeof points[0]) != "number")
+	{
+		throw new Error("Array of numbers expected.");
+	}
+
+	if(power < 1) 
+	{
+		throw new Error("Power is expected to be");
+	}
+	var q = [new Polynomial([new Term(1,0,'x')])]; //q is the name of the basis function set
+	var xvals = points.slice();
+	/*for(var i = 0; i < points.length; i++) {
+		xvals.push(points[i].x);
+	}*/
+
+	function innerProduct(fofx, gofx, xvalues) {
+		var fgofx = fofx.multiply(gofx);
+		var result = 0;
+		for(var i = 0; i < xvalues.length; i++) {
+			result += fgofx.resolve(xvalues[i]); 
+		}
+		return result;
+	}
+	var alphazero = innerProduct((new Term(1,1,'x')).multiply(q[0]),q[0],xvals)/innerProduct(q[0],q[0],xvals); 
+	q[1] = (new Term(1,1,'x')).subtract(alphazero);
+	for(var i=2; i <= power; i++) {
+		var n = i-1;
+		var alphan = innerProduct((new Term(1,1,'x')).multiply(q[n]),q[n],xvals)/innerProduct(q[n],q[n],xvals);
+		var betan = innerProduct((new Term(1,1,'x')).multiply(q[n]),q[n-1],xvals)/innerProduct(q[n-1],q[n-1],xvals);
+		q[i] = (new Term(1,1,'x')).multiply(q[n]).subtract(q[n].multiply(alphan)).subtract(q[n-1].multiply(betan));
+	}
+	for(var i=0; i < q.length; i++)  {
+		q[i].simplify();
+		q[i].sort();
+	}
+	return q;
 }
 /**
 	A Class which serves to represent mathematical ranges
