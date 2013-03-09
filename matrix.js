@@ -351,10 +351,11 @@ Matrix.prototype.LUdecomposition = function() {
 	@author Sahil Diwan
 	@param {Matrix} columnvector An N-by-1 matrix
 	@return {Matrix} Solutions in an N-by-1 matrix
-	@todo implement the algorith on page 282
+	@todo implement algorithm on page 282
 **/
 Matrix.prototype.tridiagonalSolve = function(columnvector) {
 	
+
 }
 
 /**
