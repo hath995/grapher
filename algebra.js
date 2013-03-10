@@ -11,8 +11,8 @@
 	@class
 	@constructor
 	@param {double} coefficient The coefficient of the term.
-	@param {double} power The power of the variable in the term.
-	@param {string} variable The name of the variable involved in the term
+	@param {double|double[]} power The power of the variable in the term.
+	@param {string|string[]} variable The name of the variable involved in the term
 	@todo: convert all power and variable code to work with objects
 		then implement the Term contructor to generate the correct structure using exiting code
 		implement isMatchingVariable
@@ -21,11 +21,73 @@
 **/
 function Term(coefficient, power, variable)
 {
+	if(variable === undefined || power === undefined || coefficient === undefined) {
+		throw new Error("Cofficient, power, and variable expected in parameters.");
+	}
 	this.coefficient = coefficient;
-	this.power = power;
-	this.variable = variable;
+	if(power instanceof Array) {
+		this.power = power;
+	}else{
+		this.power =[power];
+	}
+
+	if(variable instanceof Array)
+	{
+		var varobj = {};
+		for(var i =0; i < variable.length; i++) {
+			varobj[variable[i]] = i;
+		}
+		this.variable = varobj;
+	}else if(typeof variable == "string") {
+		this.variable ={};
+		this.variable[variable] = 0;
+	}else{
+		this.variable = variable;
+	}
 }
 
+/**
+	Compare two terms if they have matching variable sets
+	@private 
+	@param {Term} that The term being compared
+	@return {Boolean}
+**/
+Term.prototype.isMatchingVariables = function(that) {
+	var leftcontained = true;
+	var rightcontained = true;
+	for(var v in this.variable) {
+		if(that.variable[v] == undefined) {
+			leftcontained = false;
+		}
+	}
+
+	for(var v in that.variable) {
+		if(this.variable[v] == undefined) {
+			rightcontained = false;
+		}
+	}	
+	return leftcontained && rightcontained;
+}
+
+/**
+	Compare if two terms have matching variables and powers
+	@private
+	@param {Term} that The term being compared
+	@return {Boolean}
+**/
+Term.prototype.isMatchingPowers = function(that) {
+	var matching = true;
+	if(this.power.length != that.power.length) {
+		return false;
+	}else{
+		for(var v in this.variable) {
+			if(this.power[this.variable[v]] != that.power[that.variable[v]]) {
+				matching = false;
+			}
+		}
+	}
+	return matching;
+}
 
 /**
 	Returns the additive invese of the term
@@ -45,9 +107,9 @@ Term.prototype.neg = function() {
 Term.prototype.add = function(summand) {
 	if(summand instanceof Term)
 	{
-		if(summand.variable == this.variable)
+		if(this.isMatchingVariables(summand) )
 		{
-			if(summand.power == this.power)
+			if(this.isMatchingPowers(summand) )
 			{
 				var sumofterms = new Term(this.coefficient + summand.coefficient,this.power,this.variable);
 				return sumofterms;
@@ -63,7 +125,7 @@ Term.prototype.add = function(summand) {
 	}else if(summand instanceof Polynomial) {
 		return summand.add(this);
 	}else if(typeof summand === "number") {
-		var constant = new Term(summand,0,this.variable);
+		var constant = new Term(summand,0,'x');
 		var newpoly = new Polynomial([this,constant]);
 		return newpoly; 
 	}
@@ -86,7 +148,7 @@ Term.prototype.subtract = function(summand) {
 		var difference = new Polynomial(newpoly);
 		return difference.add(this);
 	}else if(typeof summand === "number") {
-		var constant = new Term(0-summand,0,this.variable);
+		var constant = new Term(0-summand,0,'x');
 		return new Polynomial([this,constant]);
 	}
 }
@@ -97,46 +159,78 @@ Term.prototype.subtract = function(summand) {
 	@return {Term|Polynomial} The product
 **/
 Term.prototype.multiply = function(multiplicand) {
-	var tempterm = new Term();
+	var newcoef;
+	var newpowers = [];
+	var newvars = {};
 	if(multiplicand instanceof Term)
 	{
-		if(multiplicand.variable == this.variable) {
-			tempterm.coefficient = this.coefficient*multiplicand.coefficient;
-			tempterm.variable = this.variable;
-			tempterm.power = this.power + multiplicand.power;
+		newcoef = this.coefficient*multiplicand.coefficient;
+		var varcount = 0;
+		for(var v in this.variable) {
+			//if(newvars[v] == undefined) {
+				newvars[v] = varcount;
+				newpowers[varcount] = this.power[this.variable[v]];
+				varcount++;
+			//}
 		}
+		for(var v in multiplicand.variable) {
+			if(newvars[v] == undefined) {
+				newvars[v] = varcount;
+				newpowers[varcount] = multiplicand.power[multiplicand.variable[v]];
+				varcount++;
+			}else{
+				newpowers[newvars[v]] += multiplicand.power[multiplicand.variable[v]];
+			}
+		}
+				
+		
 	}else if(multiplicand instanceof Polynomial) {
 		return multiplicand.multiply(this); 	
 	}else if(typeof multiplicand === "number") {
 		
-			tempterm.coefficient = this.coefficient*multiplicand;
-			tempterm.variable = this.variable;
-			tempterm.power = this.power;
+			newcoef = this.coefficient*multiplicand;
+			newvars = this.variable;
+			newpowers = this.power.slice();
 	}
+	var tempterm = new Term(newcoef,newpowers,newvars);
 	return tempterm;
 }
 
 /**
 	Divide a term by another term or a constant
-	@param {Term|Polynomial|double} denominator The denominator of the divisor 
+	@param {Term|double} denominator The denominator of the divisor 
 	@return {Term|Polynomial} The quotient 
 **/
 Term.prototype.divide = function(denominator) {
-	var tempterm = new Term();
 	if(denominator instanceof Term)
 	{
-		if(denominator.variable == this.variable) {
-			tempterm.coefficient = this.coefficient/denominator.coefficient;
-			tempterm.variable = this.variable;
-			tempterm.power = this.power - denominator.power;
+		var newcoef = this.coefficient/denominator.coefficient;
+		var newpowers = [];
+		var newvars = {};
+		var varcount = 0;
+		for(var v in this.variable) {
+			//if(newvars[v] == undefined) {
+				newvars[v] = varcount;
+				newpowers[varcount] = this.power[this.variable[v]];
+				varcount++;
+			//}
 		}
+		for(var v in denominator.variable) {
+			if(newvars[v] == undefined) {
+				newvars[v] = varcount;
+				newpowers[varcount] = 0-denominator.power[denominator.variable[v]];
+				varcount++;
+			}else{
+				newpowers[newvars[v]] -= denominator.power[denominator.variable[v]];
+			}
+		}
+		var tempterm = new Term(newcoef,newpowers,newvars);
+		return tempterm;
 	}else if(typeof denominator === "number") {
 		
-			tempterm.coefficient = this.coefficient/denominator;
-			tempterm.variable = this.variable;
-			tempterm.power = this.power;
+			var tempterm = new Term(this.coefficient/denominator,this.power,this.variable);
+			return tempterm;
 	}
-	return tempterm;
 }
 
 /**
@@ -145,7 +239,11 @@ Term.prototype.divide = function(denominator) {
 	@return {Term} the power of the input
 **/
 Term.prototype.exponentiate = function(exponent) {
-	return new Term(Math.pow(this.coefficient,exponent),this.power*exponent,this.variable);
+	var newpowers = [];
+	for(var i =0; i < this.power.length; i++ ) {
+		newpowers[i] = this.power[i]*exponent;
+	}
+	return new Term(Math.pow(this.coefficient,exponent),newpowers,this.variable);
 
 }
 
@@ -163,24 +261,42 @@ Term.prototype.toString = function () {
 	}else if(this.coefficient !=1) {
 		retstring += this.coefficient;
 	}
-	if(this.coefficient == 1 && this.power == 0)
-	{
-		retstring += this.coefficient;
-	} 
-	if(this.coefficient == -1 && this.power == 0) {
-		retstring += 1;
-	}
-	if(this.power != 0) 
-	{
-		if(this.power == 1)
-		{
 
-			retstring += this.variable
-			//do nothing, hurray!
-		}else{
-			retstring += this.variable
-			retstring +="^"+this.power;
+	var isconstant = true;
+	for(var i=0; i < this.power.length; i++) {
+		if(this.power[i] != 0) {
+			isconstant = false;
 		}
+	}
+	if(isconstant) {
+		if(this.coefficient == 1 )
+		{
+			retstring += this.coefficient;
+		} 
+		if(this.coefficient == -1) {
+			retstring += 1;
+		}
+	}
+	var trouble; //hackery here to remove extraneous *'s from the toString
+	for(var v in this.variable) {
+		trouble = false;
+		var thepower = this.power[this.variable[v]]; 
+		if(thepower != 0) 
+		{
+			if(thepower == 1)
+			{
+
+				//retstring += this.variable
+				retstring += v; 
+			}else{
+				retstring += v; 
+				retstring +="^"+thepower+"*";
+				trouble = true;
+			}
+		}
+	}
+	if(trouble) {
+		retstring = retstring.slice(0,-1);
 	}
 	return retstring;
 	
@@ -191,15 +307,53 @@ Term.prototype.toString = function () {
 	@return {String} Return the term in formatted string
 **/
 Term.prototype.serialize = function() {
-	return ""+this.coefficient+""+this.variable+"^"+this.power;
+	var retstring =""+this.coefficient;
+	for(var v in this.variable) {
+		retstring += ""+v+"^"+this.power[this.variable[v]];
+	}
+	return retstring; 
 }
 
 /**
-	@param {double} value Evaluate the term for the value
-	@return {double} The result of the function
+	@param {double|Object} value Evaluate the term for the value
+	@return {double|Term} The result of the function
 **/
 Term.prototype.resolve = function(value) {
-	return this.coefficient * Math.pow(value,this.power);
+	if(this.power.length == 1 && typeof value == "number" ) {
+		return this.coefficient * Math.pow(value,this.power);
+	}else{
+		if(typeof value == "number") {
+			throw new Error("Tuple expected.");
+		}
+		var result = this.coefficient;
+		var remainingvars = {};
+		for(var v in this.variable) {
+			remainingvars[v] = 0;
+		}
+		for(var v in value) {
+			if(this.variable.hasOwnProperty(v))
+			{
+				result *= Math.pow(value[v],this.power[this.variable[v]]);
+			}
+			
+			delete remainingvars[v];
+		}
+		var varsleft = false;
+		var remainingpowers = [];
+		var rpcount = 0;
+		for(var v in remainingvars) {
+			varsleft = true;
+			remainingpowers[rpcount] = this.power[this.variable[v]];
+			remainingvars[v] = rpcount;
+			rpcount++;
+		}
+		if(varsleft) {
+			
+			return new Term(result,remainingpowers,remainingvars);;
+		}else{
+			return result;
+		}
+	}
 }
 
 /**
@@ -208,7 +362,7 @@ Term.prototype.resolve = function(value) {
 	@param {String} sterm A string of the form ax^b where a,b are floats, and x is any variable 
 **/
 Term.prototype.initTerm = function(sterm) {
-	var termRe = /([-]*\d*(\.\d*)*)([a-zA-Z]+)\^([-]*\d+(\.\d*)*)/;
+	var termRe = /([-]*\d*(\.\d*)*)([a-zA-Z]+)\^([-]*\d+(\.\d*)*)+/;
 	var termValues = termRe.exec(sterm);
 
 	this.coefficient = parseFloat(termValues[1]);
@@ -236,7 +390,20 @@ Polynomial.prototype.resolve = function(value) {
 	var sumofterms = 0; 
 	for (var i=0;i<this.terms.length;i++)
 	{
-		sumofterms += this.terms[i].resolve(value);
+		var termvalue = this.terms[i].resolve(value);
+		if(termvalue instanceof Term || termvalue instanceof Polynomial) {
+			if(sumofterms instanceof Term || sumofterms instanceof Polynomial) {
+				sumofterms = sumofterms.add(termvalue);
+			}else{
+				sumofterms = termvalue.add(sumofterms);
+			}
+		}else{
+			if(sumofterms instanceof Term || sumofterms instanceof Polynomial) {
+				sumofterms = sumofterms.add(termvalue);
+			}else{
+				sumofterms += termvalue; 
+			}
+		}
 	}
 	return sumofterms;
 };
@@ -292,19 +459,8 @@ Polynomial.prototype.add = function(summand) {
 		var matchingpower = false;
 		//var temppolynomial = this;
 		var temppolynomial = new Polynomial(this.terms.slice()); 
-		for(var i =0; i <this.terms.length; i++)
-		{
-			if(this.terms[i].power == summand.power)
-			{
-				temppolynomial.terms[i] = this.terms[i].add(summand);
-				matchingpower = true;
-				break;
-			}
-		}
-		if(!matchingpower)
-		{
-			temppolynomial.terms.push(summand);
-		}
+		temppolynomial.terms.push(summand);
+		temppolynomial.simplify();
 		temppolynomial.sort();
 		return temppolynomial;
 	}else if(typeof summand === "number") {
@@ -341,19 +497,8 @@ Polynomial.prototype.subtract = function(subtrahend) {
 	}else if(subtrahend instanceof Term) {
 		var matchingpower = false;
 		var temppolynomial = new Polynomial(this.terms.slice()); 
-		for(var i =0; i <this.terms.length; i++)
-		{
-			if(this.terms[i].power == subtrahend.power)
-			{
-				temppolynomial.terms[i] = this.terms[i].subtract(subtrahend);
-				matchingpower = true;
-				break;
-			}
-		}
-		if(!matchingpower)
-		{
-			temppolynomial.terms.push(subtrahend.neg());
-		}
+		temppolynomial.terms.push(subtrahend.neg());
+		temppolynomial.simplify();
 		temppolynomial.sort();
 		return temppolynomial;
 	}else if(typeof subtrahend === "number") {
@@ -445,23 +590,23 @@ Polynomial.prototype.exponentiate = function(exponent) {
 	Due to the implmentation of some of the mathematical operations they generate
 	unsimplified polynomials. This corrects that.
 **/
-Polynomial.prototype.simplify = function() {
+/*Polynomial.prototype.simplify = function() {
 	var  powers = {};
 	var  constants = 0;
-	for(var i =0; i < this.terms.length; i++)
+	for(var i =0; i < this.terms.length; i++) //for every term
 	{
 		var v = this.terms[i].variable;
-		if(powers[v] === undefined)
+		if(powers[v] === undefined) //create hash bucket for variables
 		{
 			powers[v] = {};
 		}
 		var p = ""+this.terms[i].power;
-		if(p == "0")
+		if(p == "0") //create has bucket for powers
 		{
 			constants += this.terms[i].coefficient;	
-		}else if(powers[v][p] === undefined) {
+		}else if(powers[v][p] === undefined) { //put term in bucket
 			powers[v][p] = this.terms[i];
-		}else{
+		}else{ //add together if matching
 			powers[v][p] = this.terms[i].add(powers[v][p]);
 		}
 	}
@@ -480,8 +625,56 @@ Polynomial.prototype.simplify = function() {
 			}
 		}
 	}
+}*/
+Polynomial.prototype.simplify = function() {
+	var  powers = new Object(); 
+	var  constants = 0;
+	for(var i =0; i < this.terms.length; i++) //for every term
+	{
+		var termvarsobj = this.terms[i].variable;
+		var termvarsordering = [];
+		for(var v in termvarsobj) {
+			termvarsordering.push(v);
+		}
+		termvarsordering.sort();
+		var varnames = termvarsordering.join('_');
+		if(!powers.hasOwnProperty(varnames)) //create hash bucket for variables
+		{
+			powers[varnames] = {}; 
+		}
+		var sortedpower = []
+		var allzeroes = true;
+		for(var v in termvarsordering) {
+			var sp = this.terms[i].power[this.terms[i].variable[termvarsordering[v]]];
+			sortedpower.push(sp);
+			if(sp != 0) { allzeroes = false;
+			}
+		}
+		var p = sortedpower.join('_');
+		var zeropower;
+		if(allzeroes) //create has bucket for powers
+		{
+			constants += this.terms[i].coefficient;	
+		}else if(!powers[varnames].hasOwnProperty(p)) { //put term in bucket
+			powers[varnames][p] = this.terms[i];
+		}else{ //add together if matching
+			powers[varnames][p] = this.terms[i].add(powers[varnames][p]);
+		}
+	}
+	this.terms = [];
+	if(constants != 0) {
+		this.terms.push(new Term(constants,0,'x'));
+	}
+	for(var variable in powers) 
+	{
+		for(var power in powers[variable]) 
+		{
+			if(powers[variable][power].coefficient != 0) {
+				this.terms.push(powers[variable][power]);
+			}
+		}
+	}
 }
-
 /**
 	Due to the implmentation of the mathematical operations terms are  not in 
 	any sorted order. This sorts them.
