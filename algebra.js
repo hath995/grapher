@@ -976,10 +976,61 @@ PiecewiseFunction.prototype.createSecondDegSpline = function(points, zzero) {
 	@author Sahil Diwan
 	@param {Point[]} points An array of points to interpolate
 	@return {PiecewiseFunction} A piecewise function using polynomials of degree three
-	@todo: IMPLEMENT the stuff on page 392
+	IMPLEMENTED algorithm on page 392
 **/
 PiecewiseFunction.prototype.createThirdDegSpline = function(points) {
+	if(points.length < 2)
+	{
+		throw new Error("At least 2 points are required");
+	}
+	var sortedpoints = points.slice();
+	sortedpoints.sort(function(a,b) {
+		if(a.x < b.x) {
+			return -1;
+		}else if(a.x > b.x) {
+			return 1;
+		}else{
+			return 0;
+		}
 
+	});
+	var h = [];
+	var b = [];
+	for(var i = 0; i < sortedpoints.length - 1; i++) {
+		h[i] = sortedpoints[i + 1].x - sortedpoints[i].x;
+		b[i] = ((sortedpoints[i + 1].y - sortedpoints[i].y)/h[i]);
+	}
+	var u = [];
+	var v = [];
+	for(var i = 1; i < sortedpoints.length - 1; i++) {
+		if(i == 1) {
+			u[1] = ((h[0] + h[1]) * 2);
+			v[1] = (((b[1] - b[0])) * 6);
+		} 
+		else {
+			u[i] = (((h[i] + h[i - 1]) * 2) - ((Math.pow(h[i - 1], 2) / u[i - 1])));
+			v[i] = (((b[i] - b[i - 1]) * 6) - ((h[i - 1] * v[i - 1]) / u[i - 1]));
+		}
+	}
+	var z = [];
+	for(i = sortedpoints.length - 1; i >= 1; i--) {
+		z[i] = ((v[i] - (h[i] * z[i + 1])) / u[i]);
+	}
+
+	var functionarray = [];
+	var rangearray = [];
+
+	for(var i = 0; i < sortedpoints.length - 1; i++) {
+		var tmp1 = (new Term(1, 1, "x").subtract(sortedpoints[i].x).exponentiate(3).multiply(z[i + 1] / (6 * h[i])));
+		var tmp2 = (new Term(sortedpoints[i + 1].x, 0, "x").subtract(new Term(1, 1, "x")).exponentiate(3).multiply(z[i] / (6 * h[i])));
+		var tmp3 = (new Term(1, 1, "x").subtract(sortedpoints[i].x).multiply((sortedpoints[i + 1].y / h[i]) - ((h[i]/6) * z[i+1])));
+		var tmp4 = (new Term(sortedpoints[i + 1].x, 0, "x").subtract(new Term(1, 1, "x")).multiply((sortedpoints[i].y / h[i]) - ((h[i]/6) * z[i])));
+
+		functionarray[i] = tmp1.add(tmp2).add(tmp3).add(tmp4); 
+		rangearray.push(new Range("["+sortedpoints[i].x+","+sortedpoints[i+1].x+"]"));
+	}
+
+	return new PiecewiseFunction(functionarray,rangearray);
 }
 
 /**

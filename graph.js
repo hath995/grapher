@@ -25,7 +25,7 @@ function graph(xlow,xhigh, ylow,yhigh,counter,points,functions) {
 	this.points =points;
 	//var functions = [];
 	this.functions = functions;
-	this.datamethods = [Polynomial.prototype.LagrangeInterpolation,PiecewiseFunction.prototype.createFirstDegSpline,PiecewiseFunction.prototype.createSecondDegSpline]
+	this.datamethods = [Polynomial.prototype.LagrangeInterpolation,PiecewiseFunction.prototype.createFirstDegSpline,PiecewiseFunction.prototype.createSecondDegSpline,PiecewiseFunction.prototype.createThirdDegSpline]
 	
 	this.currentinterpolator = 0;
 	this.changeInterpolation = function(value) {
@@ -34,6 +34,8 @@ function graph(xlow,xhigh, ylow,yhigh,counter,points,functions) {
 		}else if(value == "spline1") {
 			this.currentinterpolator = 1;
 		}else if(value == "spline2") {
+			this.currentinterpolator = 2;
+		}else if(value == "spline3") {
 			this.currentinterpolator = 2;
 		}
 
