@@ -36,7 +36,7 @@ function graph(xlow,xhigh, ylow,yhigh,counter,points,functions) {
 		}else if(value == "spline2") {
 			this.currentinterpolator = 2;
 		}else if(value == "spline3") {
-			this.currentinterpolator = 2;
+			this.currentinterpolator = 3;
 		}
 
 	}
@@ -94,6 +94,12 @@ graph.prototype.ypu = function() {
 **/
 graph.prototype.addPoint = function(newpoint)
 {
+	previouspoint =this.points[this.points.length-1];
+	if(previouspoint != undefined) {
+		if(newpoint.x == previouspoint.x && newpoint.y == previouspoint.y) 
+			return;
+	}
+	//This ^ handles a common failure case of the graph object and double clicking.
 	this.points.push(newpoint);
 	var redrawrequired = false;
 	if(newpoint.x >= this.xhigh)
@@ -130,6 +136,7 @@ graph.prototype.addPoint = function(newpoint)
 		$("#s_functionlist").append('<option>'+newpoly+'</option>');
 	}
 	this.redraw();
+	
 
 }
 

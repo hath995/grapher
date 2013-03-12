@@ -733,6 +733,55 @@ Polynomial.prototype.orthogonalPolynomials = function(points, power) {
 	}
 	return q;
 }
+
+/**
+	Generate a function of least squares for given data points and given basis functions
+	@param {Point[]} points A sorted array of points
+	@param {Polynomial[]} bases The basis functions
+	@return {Polynomial} The method of least square distance from all of the points
+**/
+Polynomial.prototype.leastSquare =  function(points, bases) {
+	var sortedpoints = points.slice();
+	sortedpoints.sort(function(a,b) {
+		if(a.x < b.x) {
+			return -1;
+		}else if(a.x > b.x) {
+			return 1;
+		}else{
+			return 0;
+		}
+
+	});
+	function innerProduct(fofx, gofx, xvalues) {
+		var fgofx = fofx.multiply(gofx);
+		var result = 0;
+		for(var i = 0; i < xvalues.length; i++) {
+			result += fgofx.resolve(xvalues[i]); 
+		}
+		return result;
+	}
+	var normalequations = [];
+	var normalsums = [];
+	var n = bases.length;
+	for( var i =0; i < n; i++) {
+		normalequations.push([]);
+		for( var j = 0; j < n; j++) {
+			var sum = innerProduct(bases[i],bases[j],points);
+			normalequations[i][j] = sum;
+		}
+		normalsums.push(innerProduct(bases[i],new Term(1,1,'y'),points));
+	}
+	var normalmatrix = new Matrix(n,n,normalequations);
+	var basisconstants = normalmatrix.naiveGaussian(Matrix.prototype.columnVector(normalsums));
+
+	console.log(basisconstants);
+	var result = bases[0].multiply(basisconstants.values[0][0]);
+	for(var i =1; i < n; i++) {
+		result = result.multiply(bases[i].multiply(basisconstants.values[i][0]));
+	}
+	return result;
+}
+
 /**
 	A Class which serves to represent mathematical ranges
 	@class
@@ -1012,8 +1061,9 @@ PiecewiseFunction.prototype.createThirdDegSpline = function(points) {
 			v[i] = (((b[i] - b[i - 1]) * 6) - ((h[i - 1] * v[i - 1]) / u[i - 1]));
 		}
 	}
-	var z = [];
-	for(i = sortedpoints.length - 1; i >= 1; i--) {
+	var z = [0];
+	z[sortedpoints.length-1]=0
+	for(i = sortedpoints.length - 2; i >= 1; i--) {
 		z[i] = ((v[i] - (h[i] * z[i + 1])) / u[i]);
 	}
 
@@ -1021,7 +1071,10 @@ PiecewiseFunction.prototype.createThirdDegSpline = function(points) {
 	var rangearray = [];
 
 	for(var i = 0; i < sortedpoints.length - 1; i++) {
-		var tmp1 = (new Term(1, 1, "x").subtract(sortedpoints[i].x).exponentiate(3).multiply(z[i + 1] / (6 * h[i])));
+		var tmp1 = (new Term(1, 1, "x")).subtract(sortedpoints[i].x).exponentiate(3).multiply(z[i + 1] / (6 * h[i]));
+		/*console.log(tmp1.toString());
+		console.log(sortedpoints[i].x)
+		console.log(z[i + 1] / (6 * h[i]))*/
 		var tmp2 = (new Term(sortedpoints[i + 1].x, 0, "x").subtract(new Term(1, 1, "x")).exponentiate(3).multiply(z[i] / (6 * h[i])));
 		var tmp3 = (new Term(1, 1, "x").subtract(sortedpoints[i].x).multiply((sortedpoints[i + 1].y / h[i]) - ((h[i]/6) * z[i+1])));
 		var tmp4 = (new Term(sortedpoints[i + 1].x, 0, "x").subtract(new Term(1, 1, "x")).multiply((sortedpoints[i].y / h[i]) - ((h[i]/6) * z[i])));
