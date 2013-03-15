@@ -772,13 +772,17 @@ Polynomial.prototype.leastSquare =  function(points, bases) {
 		normalsums.push(innerProduct(bases[i],new Term(1,1,'y'),points));
 	}
 	var normalmatrix = new Matrix(n,n,normalequations);
-	var basisconstants = normalmatrix.naiveGaussian(Matrix.prototype.columnVector(normalsums));
+	var basisconstants = normalmatrix.scaledPartialPivotGaussian(Matrix.prototype.columnVector(normalsums));
 
-	console.log(basisconstants);
+	/*console.log(normalmatrix.toString());
+	console.log(normalsums);
+	console.log(Matrix.prototype.columnVector(normalsums).toString());
+	console.log(basisconstants.toString());*/
 	var result = bases[0].multiply(basisconstants.values[0][0]);
 	for(var i =1; i < n; i++) {
-		result = result.multiply(bases[i].multiply(basisconstants.values[i][0]));
+		result = result.add(bases[i].multiply(basisconstants.values[i][0]));
 	}
+	result.sort();
 	return result;
 }
 

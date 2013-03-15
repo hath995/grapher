@@ -409,6 +409,15 @@ test("Polynomial.orthogonalPolynomials", function() {
 	equal(stringizer(Polynomial.prototype.orthogonalPolynomials(simple,1)),"[1 x-1 ]","Another basic test generating orthogonal polynomials");
 });
 
+test("Polynomial.leastSquare", function() {
+	var linear =[new Term(1,0,'x'),new Term(1,1,'x')];
+	var sortaquadratic =[new Term(1,0,'x'),new Term(1,2,'x')] 
+	var thepoints = [new Point(4,2),new Point(7,0),new Point(11,2),new Point(13,6),new Point(17,7)];
+	var morepoints =[new Point(-1,3.1),new Point(0,0.9),new Point(1,2.9)];
+	equal(Polynomial.prototype.leastSquare(thepoints,linear).toString(),"0.486434108527132x-1.6589147286821728","Test of linear regression.");
+	equal(Polynomial.prototype.leastSquare(morepoints,sortaquadratic).toString(),"2.1x^2+0.9","Test of a quadratic least square");
+});
+
 test("PiecewiseFunction.createSecondDegSpline", function() {
 	var Q = [new Point(0,8),new Point(1,12),new Point(3,2),new Point(4,6),new Point(8,0)];
 	var Y = [new Point(0,8),new Point(1,6),new Point(3,5),new Point(4,3),new Point(6,2),new Point(8,0)];

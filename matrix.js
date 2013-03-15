@@ -198,7 +198,7 @@ Matrix.prototype.naiveGaussian = function(sumcolumnvector) {
 	P. 267
 **/
 
-Matrix.prototype.ScaledPartialPivotGaussian = function(sumvector) {
+Matrix.prototype.scaledPartialPivotGaussian = function(sumvector) {
 	if(! (sumvector instanceof Matrix))
 	{
 		throw new Error("Parameter expects a Matrix");
@@ -442,7 +442,7 @@ Matrix.prototype.toString = function() {
 	retstring +="]";
 	return retstring;
 }
-
+/*
 var testdata = [[6,-2,2,4],
 		[12,-8,6,10],
 		[3,-13,9,3],
@@ -480,4 +480,4 @@ t[6] = new Matrix(4,4,[[0,0,1,0],[0,0,1,0],[0,0,0,0],[0,0,1,0]]);
 t[7] = new Matrix(4,4,[[0,1,1,1],[1,0,1,1],[0,0,0,0],[1,1,1,0]]);
 t[8] = new Matrix(4,4,[[0,1,1,1],[1,0,1,1],[0,0,0,1],[1,1,1,0]]);
 t[9] = new Matrix(4,4,[[0,1,1,1],[1,0,1,1],[0,0,0,0],[1,1,0,0]]);
-
+*/

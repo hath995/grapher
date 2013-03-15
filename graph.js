@@ -25,7 +25,16 @@ function graph(xlow,xhigh, ylow,yhigh,counter,points,functions) {
 	this.points =points;
 	//var functions = [];
 	this.functions = functions;
-	this.datamethods = [Polynomial.prototype.LagrangeInterpolation,PiecewiseFunction.prototype.createFirstDegSpline,PiecewiseFunction.prototype.createSecondDegSpline,PiecewiseFunction.prototype.createThirdDegSpline]
+	var lsq = function(points) {
+		var linear = [new Term(1,0,'x'),new Term(1,1,'x')];
+		return Polynomial.prototype.leastSquare(points,linear);
+	}
+
+	var qsq = function(points) {
+		var quadratic =[new Term(1,0,'x'),new Term(1,1,'x'),new Term(1,2,'x')];
+		return Polynomial.prototype.leastSquare(points,quadratic);
+	}
+	this.datamethods = [Polynomial.prototype.LagrangeInterpolation,PiecewiseFunction.prototype.createFirstDegSpline,PiecewiseFunction.prototype.createSecondDegSpline,PiecewiseFunction.prototype.createThirdDegSpline,lsq,qsq]
 	
 	this.currentinterpolator = 0;
 	this.changeInterpolation = function(value) {
@@ -37,7 +46,13 @@ function graph(xlow,xhigh, ylow,yhigh,counter,points,functions) {
 			this.currentinterpolator = 2;
 		}else if(value == "spline3") {
 			this.currentinterpolator = 3;
+		}else if(value == "lslinear") {
+			this.currentinterpolator = 4;
+		}else if(value == "lsquadratic") {
+			this.currentinterpolator = 5;
 		}
+
+
 
 	}
 }
