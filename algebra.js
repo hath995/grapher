@@ -796,6 +796,12 @@ Polynomial.prototype.leastSquare =  function(points, bases) {
 **/
 function Range(rangestring) {
 	
+	/**
+		Private helper function to parse the range string
+		@private
+		@param {Range} The object being initialized
+		@param {String} The range as a string to be parsed on initalized for
+	**/
 	function evaluateRange(obj,rs)
 	{
 		var rangeRe = /([[]|[(])([-]*\d*(\.\d*)*),([-]*\d*(\.\d*)*)([\]]|[)])/; 
