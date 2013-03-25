@@ -7,6 +7,7 @@
 	In the documentation I refer to Integer and Doubles but this is more to indicate intent
 	because all numbers in Javascript, also referred as "number", are 64 bit floating point variables.
 **/
+"use strict";
 /**
 	Provides a mathematical matrix object
 	@class

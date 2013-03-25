@@ -4,7 +4,7 @@
 	UNIVERSITY OF OREGON
 	MATH 351 - FALL 2012
 **/
-
+"use strict";
 
 /**
 	A class representing a 2-axis graph
@@ -109,7 +109,7 @@ graph.prototype.ypu = function() {
 **/
 graph.prototype.addPoint = function(newpoint)
 {
-	previouspoint =this.points[this.points.length-1];
+	var previouspoint =this.points[this.points.length-1];
 	if(previouspoint != undefined) {
 		if(newpoint.x == previouspoint.x && newpoint.y == previouspoint.y) 
 			return;
@@ -144,13 +144,15 @@ graph.prototype.addPoint = function(newpoint)
 	$("#s_points").append('<option>'+newpoint+'</option>');
 	if(this.points.length >1)
 	{
-		//var newpoly = LagrangeInterpolation(this.points);		
-		//var newpoly = createFirstDegSpline(this.points);		
 		var newpoly = this.datamethods[this.currentinterpolator](this.points);		
 		this.functions.push(newpoly);
 		$("#s_functionlist").append('<option>'+newpoly+'</option>');
 	}
-	this.redraw();
+	if(redrawrequired) {
+		this.redraw();
+	}else{
+		this.drawLatest();
+	}
 	
 
 }
@@ -263,6 +265,21 @@ graph.prototype.redraw = function()
 }
 
 /**
+	Draw the latest function added
+**/
+graph.prototype.drawLatest = function()
+{
+	var c = canvas.getContext('2d');
+	if(this.functions.length >0)
+	{
+		
+		this.drawFunction(this.functions[this.functions.length-1]);
+	}
+	this.drawPoints();
+
+
+}
+/**
 	Draws a function on the graph by drawing lines between calculated points.
 	@param {Polynomial|Term} interpolated The interpolated function
 **/
@@ -297,7 +314,7 @@ graph.prototype.drawFunction = function(interpolated)
 	//console.log(plist);
 	var xpu = this.xpu();
 	var ypu = this.ypu(); 
-	c = canvas.getContext('2d');
+	var c = canvas.getContext('2d');
 	c.beginPath();
 	c.strokeStyle=COLOR[this.counter%COLOR.length];
 	this.counter++;

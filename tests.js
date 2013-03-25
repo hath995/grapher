@@ -1,3 +1,4 @@
+"use strict";
 test("Term.isMatchingVariables", function() {
 	var testbasic = new Term(2,1,'x');
 	var testzero = new Term(0,2,'x');

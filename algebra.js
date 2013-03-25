@@ -4,6 +4,7 @@
 	UNIVERSITY OF OREGON
 	MATH 351 - FALL 2012
 **/
+"use strict";
 
 
 /**
