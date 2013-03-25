@@ -5,7 +5,19 @@
 	MATH 351 - FALL 2012
 **/
 "use strict";
+/**
+	A pseudo-constructor which reatttaches methods to an object which has been 
+	passed through JSON serialization
+	@param {Object} serialized A 'class' object but without the attached methods
+**/
+function reattachMethods(serialized,originalclass) {
+	for(var property in originalclass.prototype) {
+		serialized[property] = originalclass.prototype[property];
+	}
+	//serialized.prototype = originalclass.prototype;
+	serialized.constructor = originalclass;
 
+}
 
 /**
 	Constructor for a term of a polynomial
@@ -45,6 +57,32 @@ function Term(coefficient, power, variable)
 	}else{
 		this.variable = variable;
 	}
+
+}
+
+/**
+	A static constant to help with de/serialization
+	@constant
+	@static
+**/
+Term.serializeName = 'Term';
+
+/**
+	Stringify the object but with additional property to help deserialization
+	@return {Object} object to JSON stringify 
+**/
+Term.prototype.toWebWorker = function() {
+	this.serializeName = Term.serializeName;
+	return this;
+}
+
+/**
+	Reattaches class methods to destringified object
+	@param {Object} that A Term stripped of methods
+	@static
+**/
+Term.fromWebWorker = function(that) {
+	reattachMethods(that,Term);	
 }
 
 /**
@@ -360,6 +398,7 @@ Term.prototype.resolve = function(value) {
 /**
 	This is an alternate constructor to initialize Term objects.
 	This is meant to be used in conjunction witht the serialize() method
+	@deprecated
 	@param {String} sterm A string of the form ax^b where a,b are floats, and x is any variable 
 **/
 Term.prototype.initTerm = function(sterm) {
@@ -380,6 +419,41 @@ Term.prototype.initTerm = function(sterm) {
 **/
 function Polynomial(terms) {
 	this.terms = terms;
+}
+/**
+	A static constant to help with de/serialization
+	@constant
+	@static
+**/
+Polynomial.serializeName = 'Polynomial';
+
+/**
+	Custom JSON representation to handle passing to web workers
+	@return {Object} For JSON.stringify
+**/
+Polynomial.prototype.toWebWorker = function() {
+	
+	var serializedterms = new Array(this.terms.length); 
+	for(var i=0;i<this.terms.length; i++) {
+		serializedterms[i] = this.terms[i].toWebWorker(); 
+	}
+	return {
+		"serializeName": Polynomial.serializeName,
+		"terms":serializedterms	
+	};
+}
+
+/**
+	Finish reconstituting a Polynomial after passing to a web worker
+	@static
+	@param {Object} that A polynomial stripped of methods
+**/
+Polynomial.fromWebWorker = function(that) {
+	reattachMethods(that,Polynomial);
+	for(var i =0; i < that.terms.length; i++) 
+	{
+		Term.fromWebWorker(that.terms[i]);
+	}
 }
 
 /**
@@ -796,7 +870,6 @@ Polynomial.prototype.leastSquare =  function(points, bases) {
 	and parens are exclusive 
 **/
 function Range(rangestring) {
-	
 	/**
 		Private helper function to parse the range string
 		@private
@@ -837,6 +910,27 @@ function Range(rangestring) {
 		throw e;
 	}
 
+}
+/**
+	A static constant to help with de/serialization
+	@constant
+	@static
+**/
+Range.serializeName = "Range";	
+
+/**
+	A method to help with serializing and passing to web worker
+**/
+Range.prototype.toWebWorker = function() {
+	this.serializeName = Range.serializeName;
+};
+
+/**
+	Reattach methods after being passed to web worker
+	@param {Object} that A Range stripped of methods
+**/
+Range.fromWebWorker = function(that) {
+	reattachMethods(that,Range);
 }
 
 /**
@@ -889,36 +983,85 @@ function PiecewiseFunction(functs, ranges) {
 	{
 		throw new Error("Number of functions and ranges must match.");
 	}
-
 	this.functs = functs;
 	this.ranges = ranges;
 
-	/**
-		Applies the function on the value and returns the result
-		@param {Double} value The value to be used in the function
-		@return {Double} The result
-		@todo Perhaps inplement a binary search for the correct range
-	**/
-	this.resolve = function(value) {
-		for(var i =0; i < ranges.length; i++) 
-		{
-			if(this.ranges[i].inRange(value)) {
-				return this.functs[i].resolve(value);
-			}
+	
+}
+
+/**
+	Applies the function on the value and returns the result
+	@param {Double} value The value to be used in the function
+	@return {Double} The result
+	@todo Perhaps inplement a binary search for the correct range
+**/
+PiecewiseFunction.prototype.resolve = function(value) {
+	for(var i =0; i < this.ranges.length; i++) 
+	{
+		if(this.ranges[i].inRange(value)) {
+			return this.functs[i].resolve(value);
 		}
 	}
+}
 
-	/**
-		Creates a simple string representation of the piecewise function
-		@return {string} The string representation
-	**/
-	this.toString = function() {
-		var output = "{";
-		for(var i=0; i < this.functs.length; i++) {
-			this.functs[i].sort();
-			output += "f"+i+"(x)="+this.functs[i]+" on range: "+this.ranges[i]+", ";	
-		}
-		return output+"}";
+/**
+	Creates a simple string representation of the piecewise function
+	@return {string} The string representation
+**/
+PiecewiseFunction.prototype.toString = function() {
+	var output = "{";
+	for(var i=0; i < this.functs.length; i++) {
+		this.functs[i].sort();
+		output += "f"+i+"(x)="+this.functs[i]+" on range: "+this.ranges[i]+", ";	
+	}
+	return output+"}";
+}
+/**
+	A static constant to help with de/serialization
+	@constant
+	@static
+**/
+PiecewiseFunction.serializeName = "PiecewiseFunction";
+
+/**
+	Prepares an Object ready to be passed to a web worker	
+	@return {Object}
+**/
+PiecewiseFunction.prototype.toWebWorker = function() {
+	for(var i = 0; i < this.ranges.length; i++)
+	{
+		this.ranges[i].toWebWorker();
+	}
+	var serializedfuncts = new Array(this.functs.length);
+	for(var j=0; j < this.functs.length; j++)
+	{
+		serializedfuncts[j] = this.functs[j].toWebWorker();
+	}
+	return {
+		"serializeName":PiecewiseFunction.serializeName,
+		"ranges":this.ranges,
+		"functs":serializedfuncts
+	};
+}
+
+/**
+	Reconstitutes a PiecewiseFunction object and its data members after passed to web worker
+	@static
+	@param {Object} that A PiecewiseFunction strippd of its methods
+**/
+PiecewiseFunction.fromWebWorker = function(that) {
+	reattachMethods(that, PiecewiseFunction);
+	for(var i=0; i < that.ranges.length; i++)
+	{
+		Range.fromWebWorker(that.ranges[i]);
+	}
+	var fromHelper = {}; //Probably should centralize this somewhere...
+	fromHelper[Term.serializeName] = Term.fromWebWorker;
+	fromHelper[Polynomial.serializeName] = Polynomial.fromWebWorker;
+	fromHelper[PiecewiseFunction.serializeName] = PiecewiseFunction.fromWebWorker; //MADNESS, but legal
+	for(var j = 0; j < that.functs.length; j++) 
+	{
+		fromHelper[that.functs[j].serializeName](that.functs[j]);
 	}
 }
 
@@ -926,7 +1069,7 @@ function PiecewiseFunction(functs, ranges) {
 	Given a list of points generates a piece-wise spline function of the first degree.
 	@param {Point[]} points An array of point objects sorted by x-value
 	@return {PiecewiseFunction} The linear spline interpolation
-	
+	@example	
 	Roughly based on Page 374
 	test code:
 	var Q = [new Point(0,8),new Point(1,12),new Point(3,2),new Point(4,6),new Point(8,0)];
@@ -972,7 +1115,7 @@ PiecewiseFunction.prototype.createFirstDegSpline = function(points) {
 	@param {Point[]} points An array of point objects sorted by x-value
 	@param {Double} zzero 0 by default, otherwise the slope of the second derivative of the initial function 
 	@return {PiecewiseFunction} The quadratic spline interpolation
-	
+	@example	
 	Roughly based on Page 380
 	test code:
 	var Q = [new Point(0,8),new Point(1,12),new Point(3,2),new Point(4,6),new Point(8,0)];
@@ -1033,6 +1176,7 @@ PiecewiseFunction.prototype.createSecondDegSpline = function(points, zzero) {
 }
 
 /**
+	Creates a Natural Cubic Spline given a series of points
 	@author Sahil Diwan
 	@param {Point[]} points An array of points to interpolate
 	@return {PiecewiseFunction} A piecewise function using polynomials of degree three

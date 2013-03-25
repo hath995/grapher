@@ -8,6 +8,9 @@
 <script type="text/javascript" src="graph.js"></script>
 <script type="text/javascript">
 
+var myGrapher1 = new Worker("sidecalc.js");
+myGrapher1.onmessage = function(e) { console.log(e);};
+//myGrapher1.postMessage({"fn":ptest.toWebWorker(),"cmd":"calc","range":20,"xstart":-10});
 /**
 	Gets the x and y values of the cursor position
 	@param {double} e The cursor position of the mouse
@@ -160,6 +163,8 @@ $(document).ready(function() {
 </head>
 <body bgcolor="#3f8295">
 <h1>Polynomial Interpolation Demo by Aaron R Elligsen, and Sahil Diwan</h1>
+<a href="test.html">To Unit Tests</a>
+<a href="/">To Documentation</a>
 <table>
 <tr>
 <td>

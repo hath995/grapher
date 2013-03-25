@@ -55,6 +55,14 @@ function graph(xlow,xhigh, ylow,yhigh,counter,points,functions) {
 
 
 	}
+	this.workers = [new Worker("sidecalc.js"),new Worker("sidecalc.js"),new Worker("sidecalc.js"),new Worker("sidecalc.js")];
+	for(var i=0; i < this.workers.length; i++)
+	{
+		this.workers[i].onmessage = function (e) {
+			ourGraph.plotAndConnectPoints(e.data);
+			ourGraph.drawPoints();
+		};
+	}
 }
 
 /**
@@ -252,11 +260,24 @@ graph.prototype.redraw = function()
 	c.fillRect(0,0,canvas.width,canvas.height);
 	this.counter =0;
 	this.drawAxes();
+	var workersupport = true;
+	if(typeof(this.workers[0]) === "undefined") {
+		workersupport = false;	
+	}
 	if(this.functions.length >0)
 	{
 		for(var i=0; i <this.functions.length; i++)
 		{
-			this.drawFunction(this.functions[i]);
+			if(workersupport) {
+				this.workers[i%4].postMessage({
+					"cmd":"calc",
+					"startx":this.xlow,
+					"range":this.xhigh-this.xlow,
+					"fn":this.functions[i].toWebWorker()
+				});
+			}else{
+				this.drawFunction(this.functions[i]);
+			}
 		}
 	}
 	this.drawPoints();
@@ -330,6 +351,45 @@ graph.prototype.drawFunction = function(interpolated)
 		pixely =canvas.height -(plist[i].y-this.ylow)* ypu;
 		c.lineTo(pixelx,pixely) ;	
 		//c.bezierCurveTo(oldx,pixely,pixelx,oldy,pixelx,pixely);
+		c.stroke();
+	}
+}
+
+/**
+	Draws a curve defined by points
+	@param {Point[]} points The points to be plotted and connected;
+**/
+graph.prototype.plotAndConnectPoints = function(points) {
+	var COLOR = new Array('Blue','LimeGreen','Gold','Sienna','DarkRed','LightSlateGray','Purple','Black');
+	points.sort(function(a,b) {
+		if(a.x > b.x)
+		{
+			return 1;
+		}
+		if(a.x < b.x)
+		{
+			return -1;
+		}		
+		return 0;
+	});
+
+	var xpu = this.xpu();
+	var ypu = this.ypu(); 
+	var c = canvas.getContext('2d');
+	c.beginPath();
+	c.strokeStyle=COLOR[this.counter%COLOR.length];
+	this.counter++;
+	c.lineWidth = 2;
+	var pixelx =(points[0].x-this.xlow) * xpu ;
+	var pixely =canvas.height -(points[0].y-this.ylow)* ypu;
+	c.moveTo(pixelx,pixely);
+	for(var i=1; i < points.length; i++)
+	{
+		var oldx = pixelx;
+		var oldy = pixely;
+		pixelx =(points[i].x-this.xlow) * xpu ;
+		pixely =canvas.height -(points[i].y-this.ylow)* ypu;
+		c.lineTo(pixelx,pixely) ;	
 		c.stroke();
 	}
 }
