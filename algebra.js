@@ -74,7 +74,7 @@ Term.serializeName = 'Term';
 Term.prototype.toWebWorker = function() {
 	this.serializeName = Term.serializeName;
 	return this;
-}
+};
 
 /**
 	Reattaches class methods to destringified object
@@ -83,7 +83,7 @@ Term.prototype.toWebWorker = function() {
 **/
 Term.fromWebWorker = function(that) {
 	reattachMethods(that,Term);	
-}
+};
 
 /**
 	Compare two terms if they have matching variable sets
@@ -95,18 +95,18 @@ Term.prototype.isMatchingVariables = function(that) {
 	var leftcontained = true;
 	var rightcontained = true;
 	for(var v in this.variable) {
-		if(that.variable[v] == undefined) {
+		if(that.variable[v] === undefined) {
 			leftcontained = false;
 		}
 	}
 
 	for(var v in that.variable) {
-		if(this.variable[v] == undefined) {
+		if(this.variable[v] === undefined) {
 			rightcontained = false;
 		}
 	}	
 	return leftcontained && rightcontained;
-}
+};
 
 /**
 	Compare if two terms have matching variables and powers
@@ -126,7 +126,7 @@ Term.prototype.isMatchingPowers = function(that) {
 		}
 	}
 	return matching;
-}
+};
 
 /**
 	Returns the additive invese of the term
@@ -134,7 +134,7 @@ Term.prototype.isMatchingPowers = function(that) {
 **/
 Term.prototype.neg = function() {
 	return new Term(0-this.coefficient,this.power,this.variable);
-}
+};
 
 
 /**
@@ -168,7 +168,7 @@ Term.prototype.add = function(summand) {
 		var newpoly = new Polynomial([this,constant]);
 		return newpoly; 
 	}
-}
+};
 
 /**
 	Subtract a term, or constant from an existing term
@@ -190,7 +190,7 @@ Term.prototype.subtract = function(summand) {
 		var constant = new Term(0-summand,0,'x');
 		return new Polynomial([this,constant]);
 	}
-}
+};
 
 /**
 	Multiply a term, Polynomial, or constant to an existing term
@@ -213,7 +213,7 @@ Term.prototype.multiply = function(multiplicand) {
 			//}
 		}
 		for(var v in multiplicand.variable) {
-			if(newvars[v] == undefined) {
+			if(newvars[v] === undefined) {
 				newvars[v] = varcount;
 				newpowers[varcount] = multiplicand.power[multiplicand.variable[v]];
 				varcount++;
@@ -224,7 +224,7 @@ Term.prototype.multiply = function(multiplicand) {
 				
 		
 	}else if(multiplicand instanceof Polynomial) {
-		return multiplicand.multiply(this); 	
+		return multiplicand.multiply(this);
 	}else if(typeof multiplicand === "number") {
 		
 			newcoef = this.coefficient*multiplicand;
@@ -233,7 +233,7 @@ Term.prototype.multiply = function(multiplicand) {
 	}
 	var tempterm = new Term(newcoef,newpowers,newvars);
 	return tempterm;
-}
+};
 
 /**
 	Divide a term by another term or a constant
@@ -255,7 +255,7 @@ Term.prototype.divide = function(denominator) {
 			//}
 		}
 		for(var v in denominator.variable) {
-			if(newvars[v] == undefined) {
+			if(newvars[v] === undefined) {
 				newvars[v] = varcount;
 				newpowers[varcount] = 0-denominator.power[denominator.variable[v]];
 				varcount++;
@@ -270,7 +270,7 @@ Term.prototype.divide = function(denominator) {
 			var tempterm = new Term(this.coefficient/denominator,this.power,this.variable);
 			return tempterm;
 	}
-}
+};
 
 /**
 	Produce powers of a Term 
@@ -284,7 +284,7 @@ Term.prototype.exponentiate = function(exponent) {
 	}
 	return new Term(Math.pow(this.coefficient,exponent),newpowers,this.variable);
 
-}
+};
 
 /**
 	Generates a pretty printed version of the term.
@@ -292,27 +292,27 @@ Term.prototype.exponentiate = function(exponent) {
 **/
 Term.prototype.toString = function () { 
 	var retstring ="";
-	if(this.coefficient ==0)
+	if(this.coefficient === 0)
 	{
 		return "";
-	}else if(this.coefficient ==-1) {
+	}else if(this.coefficient === -1) {
 		retstring += '-';
-	}else if(this.coefficient !=1) {
+	}else if(this.coefficient !== 1) {
 		retstring += this.coefficient;
 	}
 
 	var isconstant = true;
 	for(var i=0; i < this.power.length; i++) {
-		if(this.power[i] != 0) {
+		if(this.power[i] !== 0) {
 			isconstant = false;
 		}
 	}
 	if(isconstant) {
-		if(this.coefficient == 1 )
+		if(this.coefficient === 1 )
 		{
 			retstring += this.coefficient;
 		} 
-		if(this.coefficient == -1) {
+		if(this.coefficient === -1) {
 			retstring += 1;
 		}
 	}
@@ -320,9 +320,9 @@ Term.prototype.toString = function () {
 	for(var v in this.variable) {
 		trouble = false;
 		var thepower = this.power[this.variable[v]]; 
-		if(thepower != 0) 
+		if(thepower !== 0) 
 		{
-			if(thepower == 1)
+			if(thepower === 1)
 			{
 
 				//retstring += this.variable
@@ -339,7 +339,7 @@ Term.prototype.toString = function () {
 	}
 	return retstring;
 	
-}
+};
 
 /**
 	Generate a formated string representing a term.
@@ -351,7 +351,7 @@ Term.prototype.serialize = function() {
 		retstring += ""+v+"^"+this.power[this.variable[v]];
 	}
 	return retstring; 
-}
+};
 
 /**
 	@param {double|Object} value Evaluate the term for the value
@@ -388,12 +388,12 @@ Term.prototype.resolve = function(value) {
 		}
 		if(varsleft) {
 			
-			return new Term(result,remainingpowers,remainingvars);;
+			return new Term(result,remainingpowers,remainingvars);
 		}else{
 			return result;
 		}
 	}
-}
+};
 
 /**
 	This is an alternate constructor to initialize Term objects.
@@ -441,7 +441,7 @@ Polynomial.prototype.toWebWorker = function() {
 		"serializeName": Polynomial.serializeName,
 		"terms":serializedterms	
 	};
-}
+};
 
 /**
 	Finish reconstituting a Polynomial after passing to a web worker
@@ -454,7 +454,7 @@ Polynomial.fromWebWorker = function(that) {
 	{
 		Term.fromWebWorker(that.terms[i]);
 	}
-}
+};
 
 /**
 	Evaluates the polynomial for value value
@@ -495,9 +495,9 @@ Polynomial.prototype.toString = function() {
 		{
 			retstring += this.terms[i].toString();
 			if(this.terms[i+1].coefficient >= 0)
-			 {
+			{
 				retstring += "+";
-			 }
+			}
 		}else{
 			retstring += this.terms[i].toString();
 		}
@@ -541,7 +541,7 @@ Polynomial.prototype.add = function(summand) {
 	}else if(typeof summand === "number") {
 		var temppolynomial = new Polynomial(this.terms.slice());
 		var variable = 'x';
-		if(this.terms != undefined)
+		if(this.terms !== undefined)
 		{
 			variable = this.terms[0].variable;
 		}
@@ -579,7 +579,7 @@ Polynomial.prototype.subtract = function(subtrahend) {
 	}else if(typeof subtrahend === "number") {
 		var temppolynomial = new Polynomial(this.terms.slice());
 		var variable = 'x';
-		if(this.terms != undefined)
+		if(this.terms !== undefined)
 		{
 			variable = this.terms[0].variable;
 		}
@@ -597,7 +597,7 @@ Polynomial.prototype.subtract = function(subtrahend) {
 	@return {Polynomial} The product
 **/
 Polynomial.prototype.multiply = function(multiplicand) {
-	var productterms = new Array();
+	var productterms = [];
 	if(multiplicand instanceof Polynomial) {
 		for(var i =0; i < this.terms.length;i++)
 		{
@@ -615,7 +615,7 @@ Polynomial.prototype.multiply = function(multiplicand) {
 	}
 	var temppolynomial = new Polynomial(productterms);
 	return temppolynomial;
-}
+};
 
 /***
 	Division of a Polynomial by a number or term. Division by a polynomial is a much 
@@ -633,7 +633,7 @@ Polynomial.prototype.divide = function(denominator) {
 		}
 	}
 	return new Polynomial(divisionterms);
-}
+};
 
 /**
 	Produce powers of polynomials, only works with integers currently
@@ -644,7 +644,6 @@ Polynomial.prototype.exponentiate = function(exponent) {
 	var memoizedpowers = {};
 	var originalterm = this;
 	return (function exponentBySquares(value,exp) {
-		//if(memoized[exponent] 	
 		if(exp == 1) {
 			return value;
 		}else if(exp%2 ==1) {
@@ -659,7 +658,7 @@ Polynomial.prototype.exponentiate = function(exponent) {
 			return temp;
 		}
 	})(this,exponent);
-}
+};
 
 /**
 	Due to the implmentation of some of the mathematical operations they generate
@@ -702,7 +701,7 @@ Polynomial.prototype.exponentiate = function(exponent) {
 	}
 }*/
 Polynomial.prototype.simplify = function() {
-	var  powers = new Object(); 
+	var  powers = {}; 
 	var  constants = 0;
 	for(var i =0; i < this.terms.length; i++) //for every term
 	{
@@ -717,12 +716,12 @@ Polynomial.prototype.simplify = function() {
 		{
 			powers[varnames] = {}; 
 		}
-		var sortedpower = []
+		var sortedpower = [];
 		var allzeroes = true;
 		for(var v in termvarsordering) {
 			var sp = this.terms[i].power[this.terms[i].variable[termvarsordering[v]]];
 			sortedpower.push(sp);
-			if(sp != 0) { allzeroes = false;
+			if(sp !== 0) { allzeroes = false;
 			}
 		}
 		var p = sortedpower.join('_');
@@ -737,19 +736,19 @@ Polynomial.prototype.simplify = function() {
 		}
 	}
 	this.terms = [];
-	if(constants != 0) {
+	if(constants !== 0) {
 		this.terms.push(new Term(constants,0,'x'));
 	}
 	for(var variable in powers) 
 	{
 		for(var power in powers[variable]) 
 		{
-			if(powers[variable][power].coefficient != 0) {
+			if(powers[variable][power].coefficient !== 0) {
 				this.terms.push(powers[variable][power]);
 			}
 		}
 	}
-}
+};
 /**
 	Due to the implmentation of the mathematical operations terms are  not in 
 	any sorted order. This sorts them.
@@ -762,7 +761,7 @@ Polynomial.prototype.sort = function() {
 			return 1;
 		return 0;	
 	});
-}
+};
 
 /**
 	Generate orthogonal polynomials to assist least square methods
@@ -807,7 +806,7 @@ Polynomial.prototype.orthogonalPolynomials = function(points, power) {
 		q[i].sort();
 	}
 	return q;
-}
+};
 
 /**
 	Generate a function of least squares for given data points and given basis functions
@@ -859,7 +858,7 @@ Polynomial.prototype.leastSquare =  function(points, bases) {
 	}
 	result.sort();
 	return result;
-}
+};
 
 /**
 	A Class which serves to represent mathematical ranges
@@ -880,7 +879,7 @@ function Range(rangestring) {
 	{
 		var rangeRe = /([[]|[(])([-]*\d*(\.\d*)*),([-]*\d*(\.\d*)*)([\]]|[)])/; 
 		var result = rs.match(rangeRe);
-		if(result == null)
+		if(result === null)
 		{
 			throw new Error("Range given not parseable.");
 		}else{
@@ -931,7 +930,7 @@ Range.prototype.toWebWorker = function() {
 **/
 Range.fromWebWorker = function(that) {
 	reattachMethods(that,Range);
-}
+};
 
 /**
 	Tests if a value is within a range
@@ -957,7 +956,7 @@ Range.prototype.inRange = function(num) {
 
 	}
 			
-} 
+}; 
 
 /**
 	Creates a string representation
@@ -965,7 +964,7 @@ Range.prototype.inRange = function(num) {
 **/
 Range.prototype.toString = function() {
 	return this.def;
-}
+};
 
 /**
 	Object representing mathematical piecewise functions
@@ -1002,7 +1001,7 @@ PiecewiseFunction.prototype.resolve = function(value) {
 			return this.functs[i].resolve(value);
 		}
 	}
-}
+};
 
 /**
 	Creates a simple string representation of the piecewise function
@@ -1015,7 +1014,7 @@ PiecewiseFunction.prototype.toString = function() {
 		output += "f"+i+"(x)="+this.functs[i]+" on range: "+this.ranges[i]+", ";	
 	}
 	return output+"}";
-}
+};
 /**
 	A static constant to help with de/serialization
 	@constant
@@ -1042,7 +1041,7 @@ PiecewiseFunction.prototype.toWebWorker = function() {
 		"ranges":this.ranges,
 		"functs":serializedfuncts
 	};
-}
+};
 
 /**
 	Reconstitutes a PiecewiseFunction object and its data members after passed to web worker
@@ -1063,7 +1062,7 @@ PiecewiseFunction.fromWebWorker = function(that) {
 	{
 		fromHelper[that.functs[j].serializeName](that.functs[j]);
 	}
-}
+};
 
 /**
 	Given a list of points generates a piece-wise spline function of the first degree.
@@ -1108,7 +1107,7 @@ PiecewiseFunction.prototype.createFirstDegSpline = function(points) {
 	//functionarray.reverse();
 	//rangearray.reverse();
 	return new PiecewiseFunction(functionarray,rangearray);
-}
+};
 
 /**
 	Given a list of points generates a piece-wise spline function of the second degree.
@@ -1143,7 +1142,7 @@ PiecewiseFunction.prototype.createSecondDegSpline = function(points, zzero) {
 
 	});
 	var z = [];
-	if(zzero != undefined)
+	if(zzero !== undefined)
 	{
 		z[0] = zzero;
 	}else{
@@ -1173,7 +1172,7 @@ PiecewiseFunction.prototype.createSecondDegSpline = function(points, zzero) {
 	//functionarray.reverse();
 	//rangearray.reverse();
 	return new PiecewiseFunction(functionarray,rangearray);
-}
+};
 
 /**
 	Creates a Natural Cubic Spline given a series of points
@@ -1217,7 +1216,7 @@ PiecewiseFunction.prototype.createThirdDegSpline = function(points) {
 		}
 	}
 	var z = [0];
-	z[sortedpoints.length-1]=0
+	z[sortedpoints.length-1]=0;
 	for(i = sortedpoints.length - 2; i >= 1; i--) {
 		z[i] = ((v[i] - (h[i] * z[i + 1])) / u[i]);
 	}
@@ -1239,7 +1238,7 @@ PiecewiseFunction.prototype.createThirdDegSpline = function(points) {
 	}
 
 	return new PiecewiseFunction(functionarray,rangearray);
-}
+};
 
 /**
 	Generates a polynomial given an array of points using the Lagrange Interpolation Method
@@ -1256,7 +1255,7 @@ Polynomial.prototype.LagrangeInterpolation = function(points)
 		var li;
 		for(var j=0; j<points.length; j++)
 		{
-			if(i!=j)
+			if(i !== j)
 			{
 				var pointpoly =x.subtract(points[j].x).divide(ix-points[j].x); 
 				if(li == undefined)
@@ -1269,7 +1268,7 @@ Polynomial.prototype.LagrangeInterpolation = function(points)
 		}
 		//console.log(""+li);
 		li = li.multiply(points[i].y);
-		if(interpolated == undefined)
+		if(interpolated === undefined)
 		{
 			interpolated = li;
 		}else{
@@ -1280,7 +1279,7 @@ Polynomial.prototype.LagrangeInterpolation = function(points)
 	interpolated.simplify();
 	interpolated.sort();
 	return interpolated;
-}
+};
 
 /**
 	A point object representing a point in a 2-d plane
@@ -1302,7 +1301,7 @@ function Point(x,y)
 Point.prototype.toString = function()
 {
 		return "("+this.x+","+this.y+")";	
-}
+};
 
 /**
 	A method to calculate the integral of a function fofx from a to b using 2^n divisions
