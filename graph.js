@@ -35,7 +35,7 @@ function graph(xlow,xhigh, ylow,yhigh,counter,points,functions) {
 		return Polynomial.prototype.leastSquare(points,quadratic);
 	}
 	this.datamethods = [Polynomial.prototype.LagrangeInterpolation,PiecewiseFunction.prototype.createFirstDegSpline,PiecewiseFunction.prototype.createSecondDegSpline,PiecewiseFunction.prototype.createThirdDegSpline,lsq,qsq]
-	
+	//Todo: redo this selection system, less hardcoding	
 	this.currentinterpolator = 0;
 	this.changeInterpolation = function(value) {
 		if(value == "poly") {
@@ -56,6 +56,7 @@ function graph(xlow,xhigh, ylow,yhigh,counter,points,functions) {
 
 	}
 	this.workers = [new Worker("sidecalc.js"),new Worker("sidecalc.js"),new Worker("sidecalc.js"),new Worker("sidecalc.js")];
+	//this.workers = [];
 	for(var i=0; i < this.workers.length; i++)
 	{
 		this.workers[i].onmessage = function (e) {
@@ -269,9 +270,11 @@ graph.prototype.redraw = function()
 		for(var i=0; i <this.functions.length; i++)
 		{
 			if(workersupport) {
-				this.workers[i%4].postMessage({
+				this.workers[i%this.workers.length].postMessage({
 					"cmd":"calc",
 					"startx":this.xlow,
+					"ylow":this.ylow,
+					"yhigh":this.yhigh,
 					"range":this.xhigh-this.xlow,
 					"fn":this.functions[i].toWebWorker()
 				});
@@ -311,12 +314,24 @@ graph.prototype.drawFunction = function(interpolated)
 	var range = this.xhigh - this.xlow;
 	var plist = [];
 //	for(var i=0; i < range; i+=range/128)
+	var ingraph = false;
+	var oldery;
 	for(var i=0; i < range; i+=range/512)
 	{
 		var x = this.xlow+i;
 		var newy = interpolated.resolve(x);
 		if(newy != undefined) {
-			plist.push(new Point(x,newy));	
+			if(newy >= this.ylow && newy <= this.yhigh) {
+				if(ingraph == false && oldery != undefined) {
+					plist.push(oldery);	
+				}
+				plist.push(new Point(x,newy));	
+				ingraph = true;
+			}else if(ingraph == true) {
+				plist.push(new Point(x,newy));	
+				ingraph = false;
+			}
+			oldery = new Point(x,newy);
 		}
 	}
 	//console.log(plist);

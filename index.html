@@ -162,9 +162,10 @@ $(document).ready(function() {
  </style>
 </head>
 <body bgcolor="#3f8295">
-<h1>Polynomial Interpolation Demo by Aaron R Elligsen, and Sahil Diwan</h1>
+<h1>Numeric Interpolation Demo by Aaron R Elligsen (A work in progress)</h1>
 <a href="test.html">To Unit Tests</a>
-<a href="/">To Documentation</a>
+<a href="docs/">To Documentation</a>
+<a href="https://github.com/hath995/grapher">To Github</a>
 <table>
 <tr>
 <td>
@@ -172,7 +173,7 @@ $(document).ready(function() {
 </canvas>
 </td>
 <td>
-<p><b>Ranges may be entered like so: x1,x2 or [x1,x2]</b></p>
+<p><b>Ranges may be entered like so: x1,x2 or [x1,x2]</b><br>Points can also be added by clicking on the graph</p>
 <label for="x_range"><b>X-Range: </b></label>
 <input type="text" id="x_range" placeholder="[-10,10]">
 
@@ -204,11 +205,11 @@ $(document).ready(function() {
 </td>
 <td><fieldset id="f_type">
 <legend>Function Type</legend>
-<input checked="true" type="radio" name="f_radio" id="poly" value="poly"/><label for="poly">Polynomial Interpolation</label>
-<input type="radio" name="f_radio" id="spl1" value="spline1"/><label for="spl1">1st Degree Spline</label>
-<input type="radio" name="f_radio" id="spl2" value="spline2"/><label for="spl2">2nd Degree Spline</label>
-<input type="radio" name="f_radio" id="spl3" value="spline3"/><label for="spl3">Natural Cubic Spline</label>
-<input type="radio" name="f_radio" id="ls1" value="lslinear"/><label for="lslinear">Linear Least Square</label>
+<input checked="true" type="radio" name="f_radio" id="poly" value="poly"/><label for="poly">Polynomial Interpolation</label><br>
+<input type="radio" name="f_radio" id="spl1" value="spline1"/><label for="spl1">1st Degree Spline</label><br>
+<input type="radio" name="f_radio" id="spl2" value="spline2"/><label for="spl2">2nd Degree Spline</label><br>
+<input type="radio" name="f_radio" id="spl3" value="spline3"/><label for="spl3">Natural Cubic Spline</label><br>
+<input type="radio" name="f_radio" id="ls1" value="lslinear"/><label for="lslinear">Linear Least Square</label><br>
 <input type="radio" name="f_radio" id="ls2" value="lsquadratic"/><label for="lsquadratic">Quadtratic Least Square</label>
 </fieldset></td>
 </tr>

@@ -755,9 +755,9 @@ Polynomial.prototype.simplify = function() {
 **/
 Polynomial.prototype.sort = function() {
 	this.terms.sort(function(a,b) {
-		if(a.power > b.power)
+		if(parseFloat(a.power) > parseFloat(b.power))
 			return -1;
-		if(a.power < b.power)
+		if(parseFloat(a.power) < parseFloat(b.power))
 			return 1;
 		return 0;	
 	});
