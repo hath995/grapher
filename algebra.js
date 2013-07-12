@@ -11,12 +11,14 @@
 	@param {Object} serialized A 'class' object but without the attached methods
 **/
 function reattachMethods(serialized,originalclass) {
-	for(var property in originalclass.prototype) {
-		serialized[property] = originalclass.prototype[property];
+	if(serialized.hasOwnProperty("__proto__")) {
+		serialized.__proto__ = originalclass.prototype;
+	}else{
+		for(var property in originalclass.prototype) {
+			serialized[property] = originalclass.prototype[property];
+		}
+		serialized.constructor = originalclass;
 	}
-	//serialized.prototype = originalclass.prototype;
-	serialized.constructor = originalclass;
-
 }
 
 /**
@@ -754,10 +756,13 @@ Polynomial.prototype.simplify = function() {
 	any sorted order. This sorts them.
 **/
 Polynomial.prototype.sort = function() {
+	var addfn = function(a,b) {return a+b;};
 	this.terms.sort(function(a,b) {
-		if(parseFloat(a.power) > parseFloat(b.power))
+		var left = parseFloat(a.power.reduce(addfn,0));
+		var right = parseFloat(b.power.reduce(addfn,0))
+		if(left > right)
 			return -1;
-		if(parseFloat(a.power) < parseFloat(b.power))
+		if(left < right)
 			return 1;
 		return 0;	
 	});
