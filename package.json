@@ -1,0 +1,35 @@
+{
+  "name": "grapher",
+  "version": "0.2.0",
+  "description": "A numeric and algebraic library for Javascript.",
+  "main": "jj",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hath995/grapher.git"
+  },
+  "keywords": [
+    "Algebra",
+    "Numeric",
+    "Numerical",
+    "Spline",
+    "Bezier",
+    "Graph"
+  ],
+  "author": "Aaron Elligsen",
+  "license": "BSD",
+  "readmeFilename": "README.md",
+  "gitHead": "4b314ad22bce7fff19ba78c16fdc96e8214f2602",
+  "devDependencies": {
+    "grunt": "~0.4.1",
+    "grunt-contrib-concat": "~0.3.0",
+    "grunt-contrib-jshint": "~0.6.0",
+    "grunt-contrib-uglify": "~0.2.2",
+    "grunt-contrib-copy": "~0.4.1"
+  }
+}

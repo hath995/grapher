@@ -1,7 +1,5 @@
+
 /** 
-	@authors - Aaron R Elligsen
-	UNIVERSITY OF OREGON
-	MATH 352 & CS 315 - WINTER 2013
 
 	CONVENTIONS:
 	In the documentation I refer to Integer and Doubles but this is more to indicate intent
