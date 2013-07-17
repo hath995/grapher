@@ -1,3 +1,5 @@
+
+
 /**
 	Constructs a polynomial, simply a set of terms
 	@class
@@ -44,9 +46,21 @@ Polynomial.fromWebWorker = function(that) {
 };
 
 /**
+	Provides the Polynomials degree
+
+**/
+Polynomial.prototype.degree = function() {
+	var degrees = [];
+	for(var i=0; i < this.terms.length; i++) {
+		degrees.push(this.terms[i].degree());
+	}
+	return Math.max.apply(null, degrees);
+}
+
+/**
 	Evaluates the polynomial for value value
-	@param {double} value The value to be applied to the function/polynomial
-	@return {double} the result 
+	@param {double | object} value The value to be applied to the function/polynomial
+	@return {double | object} the result 
 **/
 Polynomial.prototype.resolve = function(value) { 
 	var sumofterms = 0; 
@@ -490,3 +504,16 @@ Polynomial.prototype.LagrangeInterpolation = function(points)
 	interpolated.sort();
 	return interpolated;
 };
+
+/**
+	Returns the coefficient of the polynomial of the first term of degree n
+	@param {integer} n 
+	@return {double}
+**/
+Polynomial.prototype.degreeCoeff = function(n) {
+	for(var i =0; i < this.terms.length; i++) {
+		if(this.terms[i].degree() ===  n) {
+			return this.terms[i].coefficient;
+		}
+	}
+}

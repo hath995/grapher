@@ -21,6 +21,7 @@ module.exports = function(grunt) {
 			main: {
 				files: [{expand: true, cwd: 'build/', src: ['grapher.js'], dest: 'prod/js/'},
 					{expand: true, cwd: 'vendor/', src: ['**'], dest:'prod/js/'},
+					{expand: true, src: ['tests/**'], dest:'prod/'},
 					{src: ['index.html'],dest:'prod/'}]
 			}
 		},
@@ -36,4 +37,6 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-contrib-uglify');
 	grunt.loadNpmTasks('grunt-contrib-jshint');
 	grunt.loadNpmTasks('grunt-contrib-copy');
+	grunt.registerTask('default',['concat','copy']);
+	//node node_modules/jsdoc2/app/run.js -a -t=node_modules/jsdoc2/templates/jsdoc src/*.js
 }

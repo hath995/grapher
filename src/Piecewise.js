@@ -379,4 +379,43 @@ PiecewiseFunction.prototype.createThirdDegSpline = function(points) {
 	return new PiecewiseFunction(functionarray,rangearray);
 };
 
+/**
+	Generate points for SVG paths/curves
+	@return {Point[]} Path control points in order
+**/
+PiecewiseFunction.prototype.generateBezierPaths = function() {
+	var paths = [];
+	for(var i = 0; i < this.functs.length; i++) {
+		var pointset = [];
+		var fn =this.functs[i];
+		var fnrange = this.ranges[i];
+		var startp = new Point(fnrange.lowerbound,fn.resolve(fnrange.lowerbound));
+		var endp = new Point(fnrange.upperbound,fn.resolve(fnrange.upperbound));
+		pointset.push(startp);
+		switch(fn.degree()) {
+			case 1: 
+				pointset.push(endp);
+				break;
+			case 2:
+				var xcoeff = (endp.x-startp.x);
+				var parax = (new Term(xcoeff,1,'t')).add(startp.x);
+				var paray = fn.resolve({'x':parax});
+				var quadbezier = new Matrix(3,3,[[1,0,0],[-2,2,0],[1,-2,1]]);
+				var xhalf = quadbezier.scaledPartialPivot();
 
+
+				pointset.push(endp);
+				break;
+			case 3: 
+				pointset.push(endp);
+				break;
+			default: 
+				throw new Error("Function degree out of bounds.");
+				break;	
+		}
+
+		paths.push(this.functs[i].xml);
+	}
+	this.paths = paths;
+	return paths;
+}

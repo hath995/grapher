@@ -361,13 +361,17 @@ Term.prototype.serialize = function() {
 	@return {double|Term} The result of the function
 **/
 Term.prototype.resolve = function(value) {
+	var isnomial = value instanceof Term || value instanceof Polynomial;
 	if(this.power.length == 1 && typeof value == "number" ) {
 		return this.coefficient * Math.pow(value,this.power);
+	}else if(this.power.length == 1 && isnomial) {
+		return value.exponentiate(this.power[0]).multiply(this.coefficient);
 	}else{
-		if(typeof value == "number") {
+		if(isnomial) {
 			throw new Error("Tuple expected.");
 		}
-		var result = this.coefficient;
+		var result;
+		var coefficient = this.coefficient;
 		var remainingvars = {};
 		for(var v in this.variable) {
 			remainingvars[v] = 0;
@@ -375,7 +379,16 @@ Term.prototype.resolve = function(value) {
 		for(var v in value) {
 			if(this.variable.hasOwnProperty(v))
 			{
-				result *= Math.pow(value[v],this.power[this.variable[v]]);
+				if(typeof value[v] === "number") {
+					coefficient *= Math.pow(value[v],this.power[this.variable[v]]);
+				}else{
+					if(result) {
+
+						result = result.multiply(value[v].exponentiate(this.power[this.variable[v]]));
+					}else{
+						result = value[v].exponentiate(this.power[this.variable[v]]);
+					}
+				}
 			}
 			
 			delete remainingvars[v];
@@ -390,10 +403,17 @@ Term.prototype.resolve = function(value) {
 			rpcount++;
 		}
 		if(varsleft) {
-			
-			return new Term(result,remainingpowers,remainingvars);
+			if(result) {	
+				return result.multiply(new Term(coefficient,remainingpowers,remainingvars));
+			}else{
+				return new Term(coefficient,remainingpowers,remainingvars);
+			}
 		}else{
-			return result;
+			if(result) {
+				return result.multiply(coefficient);
+			}else{
+				return coefficient;
+			}
 		}
 	}
 };
@@ -414,6 +434,16 @@ Term.prototype.initTerm = function(sterm) {
 	//returnv 
 };
 
+/**
+	Returns the monomial's degree
+**/	
+Term.prototype.degree = function() {
+	var degree = 0;
+	for(var i =0; i < this.power.length; i++) {
+		degree += this.power[i];
+	}
+	return degree;
+}
 
 
 /**

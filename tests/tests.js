@@ -209,6 +209,10 @@ test("Term.resolve", function() {
 	var identity = new Term(1,1,'x');
 	var xsquared = new Term(1,2,'x');
 	var yfunction= new Term(3,3,'y');
+	var x = new Term(1,1,'x');
+	var y = new Term(1,1,'y');
+	var c = new Term(2,0,'x');
+	var poly = new Polynomial([x,c]);
 
 	var multi = new Term(3,[1,1,2],['x','y','z']);
 	equal(zeroc.resolve(1),"0","Testing for zero constant");	
@@ -221,6 +225,15 @@ test("Term.resolve", function() {
 	equal(yfunction.resolve({'x':2,'z':2}).toString(),"3y^3","Testing for under specification of yfunction");	
 	equal(multi.resolve({'x':2,'y':3,'z':2}).toString(),"72","Testing resolve for multivariable term");	
 	equal(multi.resolve({'y':3,'z':2}).toString(),"36x","Testing resolve for multivariable term");	
+
+	//test function composition
+	equal(yfunction.resolve(identity).toString(),"3x^3","Testing single variable function composition");
+	equal(xsquared.resolve(poly).toString(),"x^2+4x+4","Testing single variable term with polynomial");
+
+	equal(yfunction.resolve({'y':identity}).toString(),"3x^3","Testing single variable function composition with named attributes.");
+	equal(multi.resolve({'y':poly}).toString(),"3x^2*z^2+6xz^2","Testing multivariable partial application and composition");
+	equal(multi.resolve({'y':x,'x':x,'z':x}).toString(),"3x^4","Testing multivariable composition");
+
 });
 
 test("Polynomial.toString", function() {
@@ -257,6 +270,7 @@ var x = new Term(1,1,'x');
 	equal(polyxyc.resolve({'x':3,'y':4}),"9","Testing a multivariable polynomial");
 	equal(multipoly.resolve({'x':3,'y':4}),"105","Testing a multivariable polynomial with multivariable terms");
 	equal(multipoly.resolve({'y':4}).toString(),"33x+6","Testing partial function applications");
+	equal(multipoly.resolve({'y':polyxc}).toString(),"2x^3+8x^2+10x+4","Testing polynomial function composition");
 
 });
 
@@ -282,6 +296,7 @@ test("Polynomial.add", function() {
 	equal(polyx.add(y).toString(),"x+y","Adding a monomial Polynomial to term of a different variable");
 	equal(multipoly.add(y).toString(),"2xy^2+x+2y+2","Adding a term to a polynomial of different variables");
 	equal(multipoly.add(2).toString(),"4+x+y+2xy^2","Adding a constant to a polynomial of different variable");
+	equal(multipoly.add(polyxyc).toString(),"2xy^2+2x+2y+4","Adding a polynomial to a polynomial of different variable");
 	equal(multipoly.add(polyxyc).toString(),"2xy^2+2x+2y+4","Adding a polynomial to a polynomial of different variable");
 
 	equal(x.toString(),"x","Testing x for side effects");

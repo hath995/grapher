@@ -1,3 +1,5 @@
+
+
 /**
 	Polynomial interpolation demo
 	@authors - Aaron R Elligsen, and Sahil Diwan
@@ -11,7 +13,7 @@
 	@class
 	@constructor
 	@param {double} xlow/xhigh The high and low values of the x-range.
-	@parapm {double} ylow/yhigh The high and low values of the y-range.
+	@param {double} ylow/yhigh The high and low values of the y-range.
 	@param {double} points The array of points added.
 	@param {double} functions The array of functions added/formed.
 **/
@@ -479,4 +481,18 @@ graph.prototype.clear = function()
 		this.redraw();
 }
 
+/**
+	Provide graphs current x-range
+**/
+graph.prototype.xrange = function() 
+{
+	return new Range("["+this.xlow+","+this.xhigh+"]");
+}
 
+/**
+	Provide graphs current y-range
+**/
+graph.prototype.yrange = function() 
+{
+	return new Range("["+this.ylow+","+this.yhigh+"]");
+}
