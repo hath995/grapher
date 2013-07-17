@@ -398,10 +398,23 @@ PiecewiseFunction.prototype.generateBezierPaths = function() {
 				break;
 			case 2:
 				var xcoeff = (endp.x-startp.x);
-				var parax = (new Term(xcoeff,1,'t')).add(startp.x);
+				var parax = (new Term(xcoeff,1,'t')).add(new Term(startp.x,0,'t'));
+				//.log(parax+"");
+				//.log(parax);
 				var paray = fn.resolve({'x':parax});
+				//.log(paray+"");
 				var quadbezier = new Matrix(3,3,[[1,0,0],[-2,2,0],[1,-2,1]]);
-				var xhalf = quadbezier.scaledPartialPivot();
+				var xhalf = quadbezier.scaledPartialPivotGaussian(Matrix.columnVector([startp.x,xcoeff,0]));
+				//.log(xhalf);
+				paray.simplify();
+				paray.sort();
+				//.log(paraycoeffs);
+				//.log(paray);
+				var paraycoeffs = [paray.degreeCoeff(0),paray.degreeCoeff(1),paray.degreeCoeff(2)];
+				//.log(paraycoeffs);
+				var yhalf = quadbezier.scaledPartialPivotGaussian(Matrix.columnVector(paraycoeffs));
+				//.log(yhalf);
+				pointset.push(new Point(xhalf.values[1][0],yhalf.values[1][0]));
 
 
 				pointset.push(endp);
@@ -414,7 +427,7 @@ PiecewiseFunction.prototype.generateBezierPaths = function() {
 				break;	
 		}
 
-		paths.push(this.functs[i].xml);
+		paths.push(pointset);
 	}
 	this.paths = paths;
 	return paths;

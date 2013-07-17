@@ -1,12 +1,10 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
-<script type="text/javascript" src="grapher.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script type="text/javascript" src="js/grapher.js"></script>
 <script type="text/javascript">
 
-var myGrapher1 = new Worker("sidecalc.js");
-myGrapher1.onmessage = function(e) { console.log(e);};
 //myGrapher1.postMessage({"fn":ptest.toWebWorker(),"cmd":"calc","range":20,"xstart":-10});
 /**
 	Gets the x and y values of the cursor position
@@ -160,7 +158,7 @@ $(document).ready(function() {
 </head>
 <body bgcolor="#3f8295">
 <h1>Numeric Interpolation Demo by Aaron R Elligsen (A work in progress)</h1>
-<a href="test.html">To Unit Tests</a>
+<a href="tests/test.html">To Unit Tests</a>
 <a href="docs/">To Documentation</a>
 <a href="https://github.com/hath995/grapher">To Github</a>
 <table>

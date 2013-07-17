@@ -496,3 +496,24 @@ graph.prototype.yrange = function()
 {
 	return new Range("["+this.ylow+","+this.yhigh+"]");
 }
+
+/**
+	Convert units to pixels
+**/
+graph.prototype.pointToPixel = function(point) {
+	var xpu = this.xpu();
+	var ypu = this.ypu(); 
+	var pixelx =(point.x-this.xlow) * xpu ;
+	var pixely =canvas.height -(point.y-this.ylow)* ypu;
+	return new Point(pixelx,pixely);
+
+}
+/*
+var newresult = [];
+for(var i=0; i < result.length; i++) {
+	    var newps = [];
+	        for(var k=0; k < result[i].length; k++) {
+			        newps.push(ourGraph.pointToPixel(result[i][k]));
+				        }
+					    }
+*/

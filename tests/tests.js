@@ -109,6 +109,12 @@ test("Polynomial.simplify", function() {
 	var mpoly3 = new Polynomial([m2,m2.neg()]);
 	mpoly3.simplify()
 	equal(mpoly3,"","Test a zeroed multivariable polynomial");
+
+	var t = (new Term(4,1,'t')).add(new Term(4,0,'t'));
+	var rr = new Term(2,1,'x');
+	var composed = rr.resolve({"x":t}).add(new Term(4,0,'x'));
+	equal(composed.toString(),"8t+12","Testing simplification of different variables");
+
 	
 });
 
@@ -127,7 +133,7 @@ test("Term.add", function() {
 	equal(c.add(d).toString(),"2+2","Adding a constant of a different variable to another.");
 
 	equal(multi.add(d),"3xy+2","Testing a multvariable term by adding a constant");
-	equal(multi.add(2),"3xy+2","Testing a multvariable term by adding a constant literal");
+	equal(multi.add(2).toString(),"3xy+2","Testing a multvariable term by adding a constant literal");
 	equal(multi.add(multi),"6xy","Testing a multvariable term by adding to itself");
 	//The above test looks wrong but in reality is fine because this situation is solved 
 	//by the simplify method.
@@ -264,6 +270,11 @@ var x = new Term(1,1,'x');
 	var polyxc = new Polynomial([x,c]);
 	var polyxyc = new Polynomial([x,y,c]);
 	var multipoly = new Polynomial([x,y,c,multi]);
+
+	var xcube = new Polynomial([new Term(3,[2],'x'),
+		new Term(4,[1],'x'),
+		new Term(5,[0],'x')]);
+	var t = new Polynomial([new Term(2,1,'t'),new Term(-1,0,'t')]);
 	
 	equal(polyx.resolve(2),"2","Test simple polynomial");
 	equal(polyxc.resolve(2),"4","Test a polynomial with a constant");
@@ -271,6 +282,19 @@ var x = new Term(1,1,'x');
 	equal(multipoly.resolve({'x':3,'y':4}),"105","Testing a multivariable polynomial with multivariable terms");
 	equal(multipoly.resolve({'y':4}).toString(),"33x+6","Testing partial function applications");
 	equal(multipoly.resolve({'y':polyxc}).toString(),"2x^3+8x^2+10x+4","Testing polynomial function composition");
+	equal(xcube.resolve({'x':t}).toString(),"12t^2-4t+4","Testing polynomial function composition change of variable");
+	equal(polyxc.resolve({'x':t}).toString(),"2t+1","Testing polynomial function composition change of variable");
+	//-0.125x^2+2x-4
+	var xarg = new Polynomial([new Term(-0.125,2,'x'),new Term(2,1,'x'),new Term(4,0,'x')]);
+	var xar = new Polynomial([new Term(-0.125,2,'x'),new Term(2,1,'x')]);
+	var tpain = new Polynomial([new Term(4,1,'t'),new Term(4,0,'t')]);
+	equal(xar.resolve({'x':tpain}).toString(),"-2t^2+4t+6","Testing polynomial function composition dual constants");
+	equal(xarg.resolve({'x':tpain}).toString(),"-2t^2+4t+10","Testing polynomial function composition dual constants");
+	//simplify side-effect?
+	var test = xarg.resolve({'x':tpain});
+	test.simplify();
+	test.sort();
+	equal(test.toString(),"-2t^2+4t+10","Testing polynomial function simplify");
 
 });
 
@@ -406,6 +430,7 @@ test("Polynomial.exponentiate", function() {
 
 	equal(xpp.exponentiate(2).toString(),"x^2+2x+1","Testing basic squaring");
 	equal(xpp.exponentiate(3).toString(),"x^3+3x^2+3x+1","Testing basic cubing");
+	equal(xpp.exponentiate(0).toString(),"1","Testing a polynomial to the 0th power");
 	equal(xyp.exponentiate(2).toString(),"4x^2*y^2+8xy^2+4y^2","Testing squaring with multivariable term");
 	//(2xy+2y)(2xy+2y) =4x^2*y^2+4xy^2+4xy^2+4y^2
 });

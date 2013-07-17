@@ -9,7 +9,7 @@ module.exports = function(grunt) {
 				         '<%= grunt.template.today("yyyy-mm-dd") %> */',
 			},
 			dist: {
-				src: ['src/Term.js','src/Polynomial.js','src/Piecewise.js','src/Matrix.js','src/Graph.js',],
+				src: ['src/Term.js','src/Polynomial.js','src/Piecewise.js','src/Matrix.js','src/Graph.js','src/svg.js'],
 				dest: 'build/grapher.js',
 			},
 		},

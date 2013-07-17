@@ -245,7 +245,15 @@ Polynomial.prototype.exponentiate = function(exponent) {
 	var memoizedpowers = {};
 	var originalterm = this;
 	return (function exponentBySquares(value,exp) {
-		if(exp == 1) {
+		if(exp == 0) {
+			var singlevar;
+			for(var k in value.terms[0].variable)
+			{
+				singlevar = k;
+				break;
+			}
+			return new Term(1,0,singlevar);	
+		}else if(exp == 1) {
 			return value;
 		}else if(exp%2 ==1) {
 			var temp =originalterm.multiply(exponentBySquares(value.multiply(value),(exp-1)/2));
@@ -265,62 +273,28 @@ Polynomial.prototype.exponentiate = function(exponent) {
 	Due to the implmentation of some of the mathematical operations they generate
 	unsimplified polynomials. This corrects that.
 **/
-/*Polynomial.prototype.simplify = function() {
-	var  powers = {};
-	var  constants = 0;
-	for(var i =0; i < this.terms.length; i++) //for every term
-	{
-		var v = this.terms[i].variable;
-		if(powers[v] === undefined) //create hash bucket for variables
-		{
-			powers[v] = {};
-		}
-		var p = ""+this.terms[i].power;
-		if(p == "0") //create has bucket for powers
-		{
-			constants += this.terms[i].coefficient;	
-		}else if(powers[v][p] === undefined) { //put term in bucket
-			powers[v][p] = this.terms[i];
-		}else{ //add together if matching
-			powers[v][p] = this.terms[i].add(powers[v][p]);
-		}
-	}
-	var oldterms = this.terms.slice();
-	this.terms = [];
-	if(constants != 0) {
-		var constantvariable = oldterms[0].variable;	
-		this.terms.push(new Term(constants,0,constantvariable));
-	}
-	for(var variable in powers) 
-	{
-		for(var power in powers[variable]) 
-		{
-			if(powers[variable][power].coefficient != 0) {
-				this.terms.push(powers[variable][power]);
-			}
-		}
-	}
-}*/
+
 Polynomial.prototype.simplify = function() {
-	var  powers = {}; 
+	var  powers = {}; //a dictionary of variable groupings each a dictionary of powers 
 	var  constants = 0;
 	for(var i =0; i < this.terms.length; i++) //for every term
 	{
 		var termvarsobj = this.terms[i].variable;
 		var termvarsordering = [];
-		for(var v in termvarsobj) {
+		for(var v in termvarsobj) { //get variables from hash
 			termvarsordering.push(v);
 		}
-		termvarsordering.sort();
-		var varnames = termvarsordering.join('_');
+		termvarsordering.sort(); //get rid of zero powers
+		
+		var varnames = termvarsordering.join('_'); //join the sorted variables as a string
 		if(!powers.hasOwnProperty(varnames)) //create hash bucket for variables
 		{
 			powers[varnames] = {}; 
 		}
 		var sortedpower = [];
 		var allzeroes = true;
-		for(var v in termvarsordering) {
-			var sp = this.terms[i].power[this.terms[i].variable[termvarsordering[v]]];
+		for(var v in termvarsordering) { //for each variable
+			var sp = this.terms[i].power[this.terms[i].variable[termvarsordering[v]]];//find the variables power
 			sortedpower.push(sp);
 			if(sp !== 0) { allzeroes = false;
 			}
@@ -450,7 +424,7 @@ Polynomial.prototype.leastSquare =  function(points, bases) {
 		normalsums.push(innerProduct(bases[i],new Term(1,1,'y'),points));
 	}
 	var normalmatrix = new Matrix(n,n,normalequations);
-	var basisconstants = normalmatrix.scaledPartialPivotGaussian(Matrix.prototype.columnVector(normalsums));
+	var basisconstants = normalmatrix.scaledPartialPivotGaussian(Matrix.columnVector(normalsums));
 
 	/*console.log(normalmatrix.toString());
 	console.log(normalsums);
@@ -516,4 +490,5 @@ Polynomial.prototype.degreeCoeff = function(n) {
 			return this.terms[i].coefficient;
 		}
 	}
+	return 0;
 }

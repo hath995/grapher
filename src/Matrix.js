@@ -29,7 +29,7 @@ function Matrix(rows,columns,values)
 	@param {Double[]} the matrix entries 
 	@return {Matrix} a 1-by-X matrix
 **/
-Matrix.prototype.rowVector = function(data) {
+Matrix.rowVector = function(data) {
 	return new Matrix(1,data.length, data);
 }
 
@@ -43,7 +43,7 @@ Matrix.prototype.rowVector = function(data) {
 	@param {Double[]} the matrix entries 
 	@return {Matrix} a X-by-1 matrix
 **/
-Matrix.prototype.columnVector = function(data) {
+Matrix.columnVector = function(data) {
 
 	var columns = [];
 	for(var i  =0; i < data.length; i++) {

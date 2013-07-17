@@ -167,7 +167,10 @@ Term.prototype.add = function(summand) {
 	}else if(summand instanceof Polynomial) {
 		return summand.add(this);
 	}else if(typeof summand === "number") {
-		var constant = new Term(summand,0,'x');
+		for(var k in this.variable) {
+			break;
+		}
+		var constant = new Term(summand,0,k);
 		var newpoly = new Polynomial([this,constant]);
 		return newpoly; 
 	}
