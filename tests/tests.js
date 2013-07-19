@@ -463,13 +463,13 @@ test("PiecewiseFunction.createSecondDegSpline", function() {
 	var Q = [new Point(0,8),new Point(1,12),new Point(3,2),new Point(4,6),new Point(8,0)];
 	var Y = [new Point(0,8),new Point(1,6),new Point(3,5),new Point(4,3),new Point(6,2),new Point(8,0)];
 	var Z = [new Point(-1,2),new Point(0,1),new Point(0.5,0),new Point(1,1),new Point(2,2),new Point(5/2.0,3)];
-	equal(PiecewiseFunction.prototype.createSecondDegSpline(Z).toString(),"{f0(x)=-x^2-2x+1 on range: [-1,0), f1(x)=-2x+1 on range: [0,0.5), f2(x)=8x^2-10x+3 on range: [0.5,1), f3(x)=-5x^2+16x-10 on range: [1,2), f4(x)=12x^2-52x+58 on range: [2,2.5], }","Basic test of second degree spline.");
+	equal(PiecewiseFunction.createSecondDegSpline(Z).toString(),"{f0(x)=-x^2-2x+1 on range: [-1,0), f1(x)=-2x+1 on range: [0,0.5), f2(x)=8x^2-10x+3 on range: [0.5,1), f3(x)=-5x^2+16x-10 on range: [1,2), f4(x)=12x^2-52x+58 on range: [2,2.5], }","Basic test of second degree spline.");
 });
 
 test("PiecewiseFunction.createThirdDegSpline",function() {
 
 	var Q = [new Point(1,0),new Point(2,1),new Point(3,0),new Point(4,1),new Point(5,0)];
-	equal(PiecewiseFunction.prototype.createThirdDegSpline(Q).toString(),"{f0(x)=-0.7142857142857143x^3+2.142857142857143x^2-0.4285714285714286x-0.9999999999999999 on range: [1,2], f1(x)=1.5714285714285714x^3-11.571428571428571x^2+26.999999999999996x-19.285714285714285 on range: [2,3], f2(x)=-1.5714285714285714x^3+16.714285714285715x^2-57.857142857142854x+65.57142857142857 on range: [3,4], f3(x)=0.7142857142857143x^3-10.714285714285715x^2+51.857142857142854x-80.71428571428572 on range: [4,5], }","Test a simple third degree spline.");
+	equal(PiecewiseFunction.createThirdDegSpline(Q).toString(),"{f0(x)=-0.7142857142857143x^3+2.142857142857143x^2-0.4285714285714286x-0.9999999999999999 on range: [1,2], f1(x)=1.5714285714285714x^3-11.571428571428571x^2+26.999999999999996x-19.285714285714285 on range: [2,3], f2(x)=-1.5714285714285714x^3+16.714285714285715x^2-57.857142857142854x+65.57142857142857 on range: [3,4], f3(x)=0.7142857142857143x^3-10.714285714285715x^2+51.857142857142854x-80.71428571428572 on range: [4,5], }","Test a simple third degree spline.");
 });
 /*
 test("Range", function() {

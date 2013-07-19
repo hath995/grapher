@@ -170,9 +170,12 @@ graph.prototype.addPoint = function(newpoint)
 	Create a new function based on the current points and method and add it to the functions array
 **/
 graph.prototype.generateFunction = function() {
+	var COLOR = new Array('Blue','LimeGreen','Gold','Sienna','DarkRed','LightSlateGray','Purple','Black');
 	if(this.points.length >1)
 	{
 		var newpoly = this.datamethods[this.currentinterpolator](this.points);		
+		newpoly.color = COLOR[this.counter%COLOR.length];
+		this.counter++;
 		this.functions.push(newpoly);
 		$("#s_functionlist").append('<option>'+newpoly+'</option>');
 	}
@@ -271,7 +274,6 @@ graph.prototype.redraw = function()
 	var c = canvas.getContext('2d');
 	c.fillStyle= "white";
 	c.fillRect(0,0,canvas.width,canvas.height);
-	this.counter =0;
 	this.drawAxes();
 	var workersupport = true;
 	if(typeof(this.workers[0]) === "undefined") {
@@ -321,7 +323,6 @@ graph.prototype.drawLatest = function()
 **/
 graph.prototype.drawFunction = function(interpolated)
 {
-	var COLOR = new Array('Blue','LimeGreen','Gold','Sienna','DarkRed','LightSlateGray','Purple','Black');
 
 	var range = this.xhigh - this.xlow;
 	var plist = [];
@@ -364,8 +365,11 @@ graph.prototype.drawFunction = function(interpolated)
 	var ypu = this.ypu(); 
 	var c = canvas.getContext('2d');
 	c.beginPath();
-	c.strokeStyle=COLOR[this.counter%COLOR.length];
-	this.counter++;
+	if(!interpolated.color) {
+		interpolated.color = COLOR[this.counter%COLOR.length]
+		this.counter++;
+	}
+	c.strokeStyle=interpolated.color;
 	c.lineWidth = 2;
 	var pixelx =(plist[0].x-this.xlow) * xpu ;
 	var pixely =canvas.height -(plist[0].y-this.ylow)* ypu;
@@ -388,7 +392,7 @@ graph.prototype.drawFunction = function(interpolated)
 **/
 graph.prototype.plotAndConnectPoints = function(points) {
 	var COLOR = new Array('Blue','LimeGreen','Gold','Sienna','DarkRed','LightSlateGray','Purple','Black');
-	points.sort(function(a,b) {
+	points.points.sort(function(a,b) {
 		if(a.x > b.x)
 		{
 			return 1;
@@ -404,7 +408,11 @@ graph.prototype.plotAndConnectPoints = function(points) {
 	var ypu = this.ypu(); 
 	var c = canvas.getContext('2d');
 	c.beginPath();
-	c.strokeStyle=COLOR[this.counter%COLOR.length];
+	if(!points.color) {
+		c.strokeStyle=COLOR[this.counter%COLOR.length];
+	}else{
+		c.strokeStyle=points.color;
+	}
 	this.counter++;
 	c.lineWidth = 2;
 	var pixelx =(points[0].x-this.xlow) * xpu ;
@@ -508,7 +516,9 @@ graph.prototype.yrange = function()
 }
 
 /**
-	Convert units to pixels
+	Convert point in unit space to pixel space
+	@param {Point} point The point to be translated
+	@return {Point} The point in pixel space
 **/
 graph.prototype.pointToPixel = function(point) {
 	var xpu = this.xpu();

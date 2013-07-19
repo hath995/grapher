@@ -33,7 +33,7 @@ onmessage = function(event) {
 				oldery = new Point(x,newy);
 			}
 		}
-		postMessage(plist);
+		postMessage({points:plist,color:fn.color});
 		break;
 	}
 }

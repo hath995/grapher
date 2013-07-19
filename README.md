@@ -26,6 +26,7 @@ Implemented Features
 18.	Unit Tests for most Polynomial code
 19.	Nearly complete JSDocs Documentation
 20. Web Workers assist graphing
+21. Export to SVG 
 
 Todo (in no particular order)
 ----------
