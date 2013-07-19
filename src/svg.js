@@ -17,11 +17,10 @@ scale all points to container.
 	@param {Range} xr The range of x values represented in the graph. 
 	@param {Range} yr The range of the y values represented 
 **/
-function SVG(h, w, g) {
-	this.height = h;
-	this.width = w;
+function SVG(g) {
 	this.funcs = [];
 	this.graph = g;
+	this.addCurves(g.functions);
 
 }
 
@@ -35,26 +34,44 @@ SVG.prototype = {
 		//if so generate parametric expression
 		//if quadratic or cubic find control points
 		//generate xml and attach to object
+		function transformPointsets(usp,g) {
+			var psp =[];
+			for(var j=0; j < usp.length; j++) {
+				var newps = [];
+				for(var k=0; k < usp[j].length; k++) {
+					newps.push(g.pointToPixel(unitspacepoints[j][k]));
+				}
+				psp.push(newps);   
+			}
+			return psp;
+		}
 		for(var i =0; i < curves.length; i++) {
-			console.log("yes")
 			var fn = curves[i];
 			if(fn instanceof PiecewiseFunction) {
-				console.log("Better");
 				var unitspacepoints = fn.generateBezierPaths();
-				var pixelspacepoints = [];
-				for(var j=0; j < unitspacepoints.length; j++) {
-					var newps = [];
-					for(var k=0; k < unitspacepoints[j].length; k++) {
-						newps.push(this.graph.pointToPixel(unitspacepoints[j][k]));
-					}
-					pixelspacepoints.push(newps);   
-				}
+				var pixelspacepoints = transformPointsets(unitspacepoints,this.graph);;
 				this.funcs.push(pixelspacepoints);
 			}else if(fn instanceof Polynomial) {
-				console.log("?");	
+				if(fn.degree() <= 3) {
+					var pw = new PiecewiseFunction([fn],[this.graph.xrange()]);
+				
+				}else{
+					var xrange = this.graph.xrange();
+					var delta = (xrange.upperbound-xrange.lowerbound)/20;
+					var curvepoints = [];
+					for(var j = 0; j <= 20; j++) {
+						var xprime = xrange.lowerbound+j*delta;
+						curvepoints.push(new Point(xprime,fn.resolve(xprime)));
+					}
+					var pw = PiecewiseFunction.createThirdDegSpline(curvepoints);
+				}
+				var unitspacepoints = pw.generateBezierPaths();
+				var pixelspacepoints = transformPointsets(unitspacepoints,this.graph);;
+				this.funcs.push(pixelspacepoints);
+
 			}else{
+				throw new TypeError("Unexpected type encountered");
 				//what the heck!
-				console.log("!!?#*$%");	
 			}
 		}
 		//if other test if degree <= 3
@@ -68,11 +85,18 @@ SVG.prototype = {
 	**/
 	toXML: function() {
 		//for each funcc append xml to xml string
+		var COLOR = new Array('Blue','LimeGreen','Gold','Sienna','DarkRed','LightSlateGray','Purple','Black');
 		var xml = '<svg version="1.1" baseProfile="full" width="'+canvas.width+'" height="'+canvas.height+'" xmlns="http://www.w3.org/2000/svg">';
 		for(var i = 0; i < this.funcs.length; i++ ) {
 			for(var j = 0; j< this.funcs[i].length; j++) {
 				var cv = this.funcs[i][j];
-				xml +='<path d="M '+cv[0].x+' '+cv[0].y+' Q '+cv[1].x+' '+cv[1].y+', '+cv[2].x+' '+cv[2].y+'" stroke="orange" fill="transparent"/>';  
+				if(cv.length === 3) {
+					xml +='<path d="M '+cv[0].x+' '+cv[0].y+' Q '+cv[1].x+' '+cv[1].y+', '+cv[2].x+' '+cv[2].y+'" stroke="orange" fill="transparent"/>';  
+				}else if(cv.length === 2) {
+					xml +='<path d="M '+cv[0].x+' '+cv[0].y+' L '+cv[1].x+' '+cv[1].y+'" stroke="orange" fill="transparent"/>';  
+				}else if(cv.length === 4) {
+					xml +='<path d="M '+cv[0].x+' '+cv[0].y+' C '+cv[1].x+' '+cv[1].y+', '+cv[2].x+' '+cv[2].y+', '+cv[3].x+' '+cv[3].y+'" stroke="'+COLOR[i%COLOR.length]+'" fill="transparent"/>';  
+				}
 			}
 		}
 		return xml+'</svg>';

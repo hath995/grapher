@@ -23,6 +23,7 @@ function graph(xlow,xhigh, ylow,yhigh,counter,points,functions) {
 	this.ylow = ylow;
 	this.yhigh = yhigh;
 	this.counter = counter;
+	this.immediate = true;
 	//var points = [];
 	this.points =points;
 	//var functions = [];
@@ -36,7 +37,7 @@ function graph(xlow,xhigh, ylow,yhigh,counter,points,functions) {
 		var quadratic =[new Term(1,0,'x'),new Term(1,1,'x'),new Term(1,2,'x')];
 		return Polynomial.prototype.leastSquare(points,quadratic);
 	}
-	this.datamethods = [Polynomial.prototype.LagrangeInterpolation,PiecewiseFunction.prototype.createFirstDegSpline,PiecewiseFunction.prototype.createSecondDegSpline,PiecewiseFunction.prototype.createThirdDegSpline,lsq,qsq]
+	this.datamethods = [Polynomial.prototype.LagrangeInterpolation,PiecewiseFunction.createFirstDegSpline,PiecewiseFunction.createSecondDegSpline,PiecewiseFunction.createThirdDegSpline,lsq,qsq]
 	//Todo: redo this selection system, less hardcoding	
 	this.currentinterpolator = 0;
 	this.changeInterpolation = function(value) {
@@ -57,8 +58,8 @@ function graph(xlow,xhigh, ylow,yhigh,counter,points,functions) {
 
 
 	}
-	this.workers = [new Worker("sidecalc.js"),new Worker("sidecalc.js"),new Worker("sidecalc.js"),new Worker("sidecalc.js")];
-	//this.workers = [];
+	//this.workers = [new Worker("sidecalc.js"),new Worker("sidecalc.js"),new Worker("sidecalc.js"),new Worker("sidecalc.js")];
+	this.workers = [];
 	for(var i=0; i < this.workers.length; i++)
 	{
 		this.workers[i].onmessage = function (e) {
@@ -133,7 +134,6 @@ graph.prototype.addPoint = function(newpoint)
 		this.xhigh = newpoint.x + (newpoint.x-this.xlow)/4;	
 		redrawrequired = true;
 	}
-
 	if(newpoint.x <= this.xlow)
 	{
 		this.xlow = newpoint.x - (this.xhigh-newpoint.x)/4;	
@@ -153,12 +153,10 @@ graph.prototype.addPoint = function(newpoint)
 	$("#x_range").val(this.xlow+","+this.xhigh);
 	$("#y_range").val(this.ylow+","+this.yhigh);
 	$("#s_points").append('<option>'+newpoint+'</option>');
-	if(this.points.length >1)
-	{
-		var newpoly = this.datamethods[this.currentinterpolator](this.points);		
-		this.functions.push(newpoly);
-		$("#s_functionlist").append('<option>'+newpoly+'</option>');
+	if(this.immediate) {
+		this.generateFunction();	
 	}
+
 	if(redrawrequired) {
 		this.redraw();
 	}else{
@@ -166,6 +164,18 @@ graph.prototype.addPoint = function(newpoint)
 	}
 	
 
+}
+
+/**
+	Create a new function based on the current points and method and add it to the functions array
+**/
+graph.prototype.generateFunction = function() {
+	if(this.points.length >1)
+	{
+		var newpoly = this.datamethods[this.currentinterpolator](this.points);		
+		this.functions.push(newpoly);
+		$("#s_functionlist").append('<option>'+newpoly+'</option>');
+	}
 }
 
 /**

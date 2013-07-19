@@ -3,6 +3,7 @@
 <meta charset="UTF-8">
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 <script type="text/javascript" src="js/grapher.js"></script>
+<script type="text/javascript" src="js/FileSaver.min.js"></script>
 <script type="text/javascript">
 
 //myGrapher1.postMessage({"fn":ptest.toWebWorker(),"cmd":"calc","range":20,"xstart":-10});
@@ -141,6 +142,30 @@ $(document).ready(function() {
 		$("#f_equation p").detach();
 		$("#f_equation").append("<p>"+$("#s_functionlist").val()+"</p>");
 	});
+
+	$("#f_imm").change(function() { 
+		ourGraph.immediate = $(this).prop("checked");
+		$("#b_genfunc").prop("disabled",ourGraph.immediate);
+	});
+
+	$("#b_genfunc").click(function() {
+		ourGraph.generateFunction();
+		ourGraph.drawLatest();	
+	});
+
+	$("#b_savesvg").click(function() {
+		var savename = $("#t_savename").val();
+		if(savename === "") {
+			savename = "graph";
+		}
+		var savenameparts = savename.split('.');
+		if(savenameparts[savenameparts.length-1] !== "svg");
+		{
+			savename += ".svg";
+		}
+		var svgmaker = new SVG(ourGraph);
+		saveAs(new Blob([svgmaker.toXML()]),savename);
+	});
 });
 
 </script>
@@ -180,6 +205,7 @@ $(document).ready(function() {
 <br>
 <!--<label for="s_equation">Equation </label>
 <input type="text" id="s_equation">-->
+<input type="text" placeholder="graph.svg" id="t_savename"><button id="b_savesvg">Save as SVG</button> 
 <br>
 <select size="10" style="width: 300px"id="s_points">
 </select>
@@ -206,12 +232,14 @@ $(document).ready(function() {
 <input type="radio" name="f_radio" id="spl3" value="spline3"/><label for="spl3">Natural Cubic Spline</label><br>
 <input type="radio" name="f_radio" id="ls1" value="lslinear"/><label for="lslinear">Linear Least Square</label><br>
 <input type="radio" name="f_radio" id="ls2" value="lsquadratic"/><label for="lsquadratic">Quadtratic Least Square</label>
-</fieldset></td>
+</fieldset>
+<input type="checkbox" name="f_imm" id="f_imm" checked="true"><label for="f_imm">Immediate Mode</label>
+<button id="b_genfunc" value="" disabled="true">Generate Function</button> 
+</td>
 </tr>
 </table>
 <fieldset id="f_equation">
 <legend>Selected Equation</legend>
-
 </fieldset>
 </body>
 </html>

@@ -12,9 +12,8 @@
 	@param {Object} serialized A 'class' object but without the attached methods
 **/
 function reattachMethods(serialized,originalclass) {
-	if(serialized.hasOwnProperty("__proto__")) {
-		serialized.__proto__ = originalclass.prototype;
-	}else{
+	serialized.__proto__ = originalclass.prototype;
+	if(!(serialized instanceof originalclass)) {
 		for(var property in originalclass.prototype) {
 			serialized[property] = originalclass.prototype[property];
 		}

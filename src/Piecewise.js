@@ -205,6 +205,7 @@ PiecewiseFunction.fromWebWorker = function(that) {
 
 /**
 	Given a list of points generates a piece-wise spline function of the first degree.
+	@static
 	@param {Point[]} points An array of point objects sorted by x-value
 	@return {PiecewiseFunction} The linear spline interpolation
 	@example	
@@ -217,7 +218,7 @@ PiecewiseFunction.fromWebWorker = function(that) {
 	ourGraph.drawPoints();
 	ourGraph.drawFunction(yspline);
 **/
-PiecewiseFunction.prototype.createFirstDegSpline = function(points) {
+PiecewiseFunction.createFirstDegSpline = function(points) {
 	if(points.length < 2)
 	{
 		throw new Error("At least 2 points are required");
@@ -250,6 +251,7 @@ PiecewiseFunction.prototype.createFirstDegSpline = function(points) {
 
 /**
 	Given a list of points generates a piece-wise spline function of the second degree.
+	@static
 	@param {Point[]} points An array of point objects sorted by x-value
 	@param {Double} zzero 0 by default, otherwise the slope of the second derivative of the initial function 
 	@return {PiecewiseFunction} The quadratic spline interpolation
@@ -264,7 +266,7 @@ PiecewiseFunction.prototype.createFirstDegSpline = function(points) {
 	ourGraph.drawPoints();
 	ourGraph.drawFunction(yspline);
 **/
-PiecewiseFunction.prototype.createSecondDegSpline = function(points, zzero) {
+PiecewiseFunction.createSecondDegSpline = function(points, zzero) {
 	if(points.length < 2)
 	{
 		throw new Error("At least 2 points are required");
@@ -316,11 +318,12 @@ PiecewiseFunction.prototype.createSecondDegSpline = function(points, zzero) {
 /**
 	Creates a Natural Cubic Spline given a series of points
 	@author Sahil Diwan
+	@static
 	@param {Point[]} points An array of points to interpolate
 	@return {PiecewiseFunction} A piecewise function using polynomials of degree three
 	IMPLEMENTED algorithm on page 392
 **/
-PiecewiseFunction.prototype.createThirdDegSpline = function(points) {
+PiecewiseFunction.createThirdDegSpline = function(points) {
 	if(points.length < 2)
 	{
 		throw new Error("At least 2 points are required");
@@ -399,27 +402,29 @@ PiecewiseFunction.prototype.generateBezierPaths = function() {
 			case 2:
 				var xcoeff = (endp.x-startp.x);
 				var parax = (new Term(xcoeff,1,'t')).add(new Term(startp.x,0,'t'));
-				//.log(parax+"");
-				//.log(parax);
 				var paray = fn.resolve({'x':parax});
-				//.log(paray+"");
 				var quadbezier = new Matrix(3,3,[[1,0,0],[-2,2,0],[1,-2,1]]);
 				var xhalf = quadbezier.scaledPartialPivotGaussian(Matrix.columnVector([startp.x,xcoeff,0]));
-				//.log(xhalf);
 				paray.simplify();
 				paray.sort();
-				//.log(paraycoeffs);
-				//.log(paray);
 				var paraycoeffs = [paray.degreeCoeff(0),paray.degreeCoeff(1),paray.degreeCoeff(2)];
-				//.log(paraycoeffs);
 				var yhalf = quadbezier.scaledPartialPivotGaussian(Matrix.columnVector(paraycoeffs));
-				//.log(yhalf);
 				pointset.push(new Point(xhalf.values[1][0],yhalf.values[1][0]));
-
-
 				pointset.push(endp);
 				break;
 			case 3: 
+				var xcoeff = (endp.x-startp.x);
+				var parax = (new Term(xcoeff,1,'t')).add(new Term(startp.x,0,'t'));
+				var paray = fn.resolve({'x':parax});
+				var cubicbezier = new Matrix(4,4,[[1,0,0,0],[-3,3,0,0],[3,-6,3,0],[-1,3,-3,1]]);
+				var xhalf = cubicbezier.scaledPartialPivotGaussian(Matrix.columnVector([startp.x,xcoeff,0,0]));
+				paray.simplify();
+				paray.sort();
+				var paraycoeffs = [paray.degreeCoeff(0),paray.degreeCoeff(1),paray.degreeCoeff(2),paray.degreeCoeff(3)];
+				var yhalf = cubicbezier.scaledPartialPivotGaussian(Matrix.columnVector(paraycoeffs));
+				pointset.push(new Point(xhalf.values[1][0],yhalf.values[1][0]));
+				pointset.push(new Point(xhalf.values[2][0],yhalf.values[2][0]));
+
 				pointset.push(endp);
 				break;
 			default: 
