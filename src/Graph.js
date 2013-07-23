@@ -415,15 +415,15 @@ graph.prototype.plotAndConnectPoints = function(points) {
 	}
 	this.counter++;
 	c.lineWidth = 2;
-	var pixelx =(points[0].x-this.xlow) * xpu ;
-	var pixely =canvas.height -(points[0].y-this.ylow)* ypu;
+	var pixelx =(points.points[0].x-this.xlow) * xpu ;
+	var pixely =canvas.height -(points.points[0].y-this.ylow)* ypu;
 	c.moveTo(pixelx,pixely);
-	for(var i=1; i < points.length; i++)
+	for(var i=1; i < points.points.length; i++)
 	{
 		var oldx = pixelx;
 		var oldy = pixely;
-		pixelx =(points[i].x-this.xlow) * xpu ;
-		pixely =canvas.height -(points[i].y-this.ylow)* ypu;
+		pixelx =(points.points[i].x-this.xlow) * xpu ;
+		pixely =canvas.height -(points.points[i].y-this.ylow)* ypu;
 		c.lineTo(pixelx,pixely) ;	
 		c.stroke();
 	}

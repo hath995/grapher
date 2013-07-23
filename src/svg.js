@@ -89,7 +89,7 @@ SVG.prototype = {
 		var COLOR = new Array('Blue','LimeGreen','Gold','Sienna','DarkRed','LightSlateGray','Purple','Black');
 		var xml = '<svg version="1.1" baseProfile="full" width="'+canvas.width+'" height="'+canvas.height+'" xmlns="http://www.w3.org/2000/svg">';
 		for(var i = 0; i < this.funcs.length; i++ ) {
-			var fncolor = g.functions[i].color;
+			var fncolor = this.graph.functions[i].color;
 			for(var j = 0; j< this.funcs[i].length; j++) {
 				var cv = this.funcs[i][j];
 				if(cv.length === 3) {
