@@ -427,12 +427,23 @@ test("Polynomial.exponentiate", function() {
 	var x = new Term(1,1,'x');
 	var xpp = x.add(1);
 	var xyp = xpp.multiply(new Term(2,1,'y'));
+	var p =  new Polynomial([new Term(1,1,'x'),new Term(1,0,'x')]);
 
 	equal(xpp.exponentiate(2).toString(),"x^2+2x+1","Testing basic squaring");
 	equal(xpp.exponentiate(3).toString(),"x^3+3x^2+3x+1","Testing basic cubing");
 	equal(xpp.exponentiate(0).toString(),"1","Testing a polynomial to the 0th power");
 	equal(xyp.exponentiate(2).toString(),"4x^2*y^2+8xy^2+4y^2","Testing squaring with multivariable term");
 	//(2xy+2y)(2xy+2y) =4x^2*y^2+4xy^2+4xy^2+4y^2
+	equal(p.exponentiate(1).toString(),"x+1","Testing first couple powers");	
+	equal(p.exponentiate(2).toString(),"x^2+2x+1","Testing first couple powers");	
+	equal(p.exponentiate(3).toString(),"x^3+3x^2+3x+1","Testing first couple powers");	
+	equal(p.exponentiate(4).toString(),"x^4+4x^3+6x^2+4x+1","Testing first couple powers");	
+	equal(p.exponentiate(5).toString(),"x^5+5x^4+10x^3+10x^2+5x+1","Testing first couple powers");	
+	equal(p.exponentiate(6).toString(),"x^6+6x^5+15x^4+20x^3+15x^2+6x+1","Testing first couple powers");	
+	equal(p.exponentiate(7).toString(),"x^7+7x^6+21x^5+35x^4+35x^3+21x^2+7x+1","Testing first couple powers");	
+	equal(p.exponentiate(8).toString(),"x^8+8x^7+28x^6+56x^5+70x^4+56x^3+28x^2+8x+1","Testing first couple powers");	
+	equal(p.exponentiate(9).toString(),"x^9+9x^8+36x^7+84x^6+126x^5+126x^4+84x^3+36x^2+9x+1","Testing first couple powers");	
+	equal(p.exponentiate(10).toString(),"x^10+10x^9+45x^8+120x^7+210x^6+252x^5+210x^4+120x^3+45x^2+10x+1","Testing first couple powers");	
 });
 
 test("Polynomial.orthogonalPolynomials", function() {

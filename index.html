@@ -1,12 +1,13 @@
+<!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>-->
+<script src="js/jquery-1.7.2.min.js"></script>
 <script type="text/javascript" src="js/grapher.js"></script>
 <script type="text/javascript" src="js/FileSaver.min.js"></script>
 <script type="text/javascript">
 
-//myGrapher1.postMessage({"fn":ptest.toWebWorker(),"cmd":"calc","range":20,"xstart":-10});
 /**
 	Gets the x and y values of the cursor position
 	@param {double} e The cursor position of the mouse
@@ -56,6 +57,8 @@ var ptest = new Polynomial([test,test2,test3,test4]);
 
 var canvas;
 var ourGraph = new graph(-10,10,-10,10,0,[],[]);
+var rdb;
+var datasets = {}; 
 
 /**
 	Adds a point to the graph via the "Add point" button
@@ -153,6 +156,28 @@ $(document).ready(function() {
 		ourGraph.drawLatest();	
 	});
 
+	rdb = new RESTDB(new IndexedDBAdapter("NumericData"));
+	rdb.adapterSetup(function() {
+		var classify ={}; 
+		classify[Term.serializeName] = Term.fromWebWorker;
+		classify[Polynomial.serializeName] = Polynomial.fromWebWorker;
+		classify[PiecewiseFunction.serializeName] = PiecewiseFunction.fromWebWorker;
+
+		rdb.get("FunctionSets",null,function(x) {
+			x.funcs.forEach(function(y) {
+				classify[y.serializeName](y);
+			});
+			datasets[x.name] = x;
+			$("#s_datasets").append('<option value="'+x.name+'">'+x.name+'</option>');
+		});
+
+		rdb.get("PointSets",null,function(x) {
+			x.points.forEach(function(p){ reattachMethods(p,Point);});
+			datasets[x.name] = x;
+			$("#s_datasets").append('<option value="'+x.name+'">'+x.name+'</option>');
+		});
+	});
+	
 	$("#b_savesvg").click(function() {
 		var savename = $("#t_savename").val();
 		if(savename === "") {
@@ -166,6 +191,42 @@ $(document).ready(function() {
 		var svgmaker = new SVG(ourGraph);
 		saveAs(new Blob([svgmaker.toXML()]),savename);
 	});
+
+	var basicLog = function(x) {console.log(x);};
+	$("#b_savepts").click(function() {
+		var pointsname = prompt("What do you want to name this point set?");	
+		rdb.post("PointSets",{name:pointsname,points:ourGraph.points},basicLog);
+	});
+
+	$("#b_savefunc").click(function() {
+		var fnsetsname = prompt("What do you want to name this function set?");	
+		rdb.post("FunctionSets",{name:fnsetsname,funcs:ourGraph.functions.map(function(x){return x.toWebWorker()})},basicLog);
+	});
+
+	$("#b_loaddata").click(function() {
+		var dataselected = $("#s_datasets").val();
+		var data = datasets[dataselected];
+		if(data) {
+			if(data.points) {
+				data.points.forEach(function(p) {		
+					$("#s_points").append('<option>'+p+'</option>');
+					ourGraph.points.push(p);
+					ourGraph.redraw();
+				});
+			}
+			if(data.funcs) {
+				data.funcs.forEach(function(fn) {		
+					$("#s_functionlist").append('<option>'+fn+'</option>');
+					ourGraph.addFunction(fn);
+					ourGraph.redraw();
+				});
+			}
+		}
+	});
+	//rdb.get("PointSets",1,function(x) {ourGraph.points = x.points});
+	//rdb.get("FunctionSets",7,function(x){x.funcs.forEach(function(y){PiecewiseFunction.fromWebWorker(y); y.color="Blue";ourGraph.functions.push(y);})});
+		
+	
 });
 
 </script>
@@ -213,11 +274,13 @@ $(document).ready(function() {
 <button id="b_add" value="">Add Point</button>
 <button id="b_remove" value="">Remove Point</button>
 <button id="b_removeall" value="">Remove All Points</button>
+<button id="b_savepts" value="">Save Points</button>
 <br>
 
 <select id="s_functionlist" size="10" style="width: 325px;">
 </select>
 <br>
+<button id="b_savefunc">Save Functions</button>
 <button id="b_removefunc" value="">Remove Function</button>
 <button id="b_removeallfunc" value="">Remove All Functions</button>
 <br><br>
@@ -241,5 +304,12 @@ $(document).ready(function() {
 <fieldset id="f_equation">
 <legend>Selected Equation</legend>
 </fieldset>
+<div id="savefuncs">
+	<div id="data">
+		<select id="s_datasets" style="width:300;"></select>
+		<button id="b_loaddata">Load Data</select>
+	</div>
+</div>
+</div>
 </body>
 </html>

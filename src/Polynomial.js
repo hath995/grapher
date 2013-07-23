@@ -245,7 +245,7 @@ Polynomial.prototype.exponentiate = function(exponent) {
 	var memoizedpowers = {};
 	var originalterm = this;
 	return (function exponentBySquares(value,exp) {
-		if(exp == 0) {
+		if(exp === 0) {
 			var singlevar;
 			for(var k in value.terms[0].variable)
 			{
@@ -253,10 +253,11 @@ Polynomial.prototype.exponentiate = function(exponent) {
 				break;
 			}
 			return new Term(1,0,singlevar);	
-		}else if(exp == 1) {
+		}else if(exp === 1) {
 			return value;
-		}else if(exp%2 ==1) {
-			var temp =originalterm.multiply(exponentBySquares(value.multiply(value),(exp-1)/2));
+		}else if(exp%2 === 1) {
+			var temp =value.multiply(exponentBySquares(value.multiply(value),(exp-1)/2));
+			//var temp =originalterm.multiply(exponentBySquares(value.multiply(value),(exp-1)/2));
 			temp.simplify();
 			temp.sort();
 			return temp; 

@@ -170,12 +170,10 @@ graph.prototype.addPoint = function(newpoint)
 	Create a new function based on the current points and method and add it to the functions array
 **/
 graph.prototype.generateFunction = function() {
-	var COLOR = new Array('Blue','LimeGreen','Gold','Sienna','DarkRed','LightSlateGray','Purple','Black');
 	if(this.points.length >1)
 	{
 		var newpoly = this.datamethods[this.currentinterpolator](this.points);		
-		newpoly.color = COLOR[this.counter%COLOR.length];
-		this.counter++;
+		newpoly.color = this.pickColor(); 
 		this.functions.push(newpoly);
 		$("#s_functionlist").append('<option>'+newpoly+'</option>');
 	}
@@ -366,8 +364,7 @@ graph.prototype.drawFunction = function(interpolated)
 	var c = canvas.getContext('2d');
 	c.beginPath();
 	if(!interpolated.color) {
-		interpolated.color = COLOR[this.counter%COLOR.length]
-		this.counter++;
+		interpolated.color = this.pickColor(); 
 	}
 	c.strokeStyle=interpolated.color;
 	c.lineWidth = 2;
@@ -391,7 +388,6 @@ graph.prototype.drawFunction = function(interpolated)
 	@param {Point[]} points The points to be plotted and connected;
 **/
 graph.prototype.plotAndConnectPoints = function(points) {
-	var COLOR = new Array('Blue','LimeGreen','Gold','Sienna','DarkRed','LightSlateGray','Purple','Black');
 	points.points.sort(function(a,b) {
 		if(a.x > b.x)
 		{
@@ -409,11 +405,10 @@ graph.prototype.plotAndConnectPoints = function(points) {
 	var c = canvas.getContext('2d');
 	c.beginPath();
 	if(!points.color) {
-		c.strokeStyle=COLOR[this.counter%COLOR.length];
+		c.strokeStyle=this.pickColor();
 	}else{
 		c.strokeStyle=points.color;
 	}
-	this.counter++;
 	c.lineWidth = 2;
 	var pixelx =(points.points[0].x-this.xlow) * xpu ;
 	var pixely =canvas.height -(points.points[0].y-this.ylow)* ypu;
@@ -501,6 +496,7 @@ graph.prototype.clear = function()
 
 /**
 	Provide graphs current x-range
+	@return {Range} 
 **/
 graph.prototype.xrange = function() 
 {
@@ -509,6 +505,7 @@ graph.prototype.xrange = function()
 
 /**
 	Provide graphs current y-range
+	@return {Range} 
 **/
 graph.prototype.yrange = function() 
 {
@@ -526,7 +523,21 @@ graph.prototype.pointToPixel = function(point) {
 	var pixelx =(point.x-this.xlow) * xpu ;
 	var pixely =canvas.height -(point.y-this.ylow)* ypu;
 	return new Point(pixelx,pixely);
+}
 
+graph.prototype.addFunction = function(fn) {
+	fn.color = this.pickColor(); 
+	this.functions.push(fn);
+
+}
+
+
+graph.prototype.pickColor = function() {
+	
+	var COLOR = ['Blue','LimeGreen','Gold','Sienna','DarkRed','LightSlateGray','Purple','Black'];
+	var fncolor = COLOR[this.counter%COLOR.length];  
+	this.counter++;
+	return fncolor;
 }
 /*
 var newresult = [];

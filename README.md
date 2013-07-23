@@ -27,16 +27,16 @@ Implemented Features
 19.	Nearly complete JSDocs Documentation
 20. Web Workers assist graphing
 21. Export to SVG 
+10. Function composition
+3. Add local storage (IndexedDB)
 
 Todo (in no particular order)
 ----------
 1. Fully generic algebraic expression parsing and representation
 2. Implement a full suite of numeric algorithms
-3. Add local storage (IndexedDB)
 4. Add remote storage (Riak or Mongo or similar)
 5. 3D graphing (with and without WebGl support)
 6. Differential equation support and graphing
 7. Console input and output
 8. Calculus support
 9. More unit tests
-10. Function composition
