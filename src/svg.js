@@ -17,14 +17,14 @@ scale all points to container.
 	@param {Range} xr The range of x values represented in the graph. 
 	@param {Range} yr The range of the y values represented 
 **/
-function SVG(g) {
+SM.SVG = function(g) {
 	this.funcs = [];
 	this.graph = g;
 	this.addCurves(g.functions);
 
 }
 
-SVG.prototype = {
+SM.SVG.prototype = {
 	/**
 		Store functions to be drawn.
 		@param {[Polynomial | PiecewiseFunction]} curves Array of Polnomials and or Piecewise Functions
@@ -47,13 +47,13 @@ SVG.prototype = {
 		}
 		for(var i =0; i < curves.length; i++) {
 			var fn = curves[i];
-			if(fn instanceof PiecewiseFunction) {
+			if(fn instanceof SM.PiecewiseFunction) {
 				var unitspacepoints = fn.generateBezierPaths();
 				var pixelspacepoints = transformPointsets(unitspacepoints,this.graph);;
 				this.funcs.push(pixelspacepoints);
-			}else if(fn instanceof Polynomial) {
+			}else if(fn instanceof SM.Polynomial) {
 				if(fn.degree() <= 3) {
-					var pw = new PiecewiseFunction([fn],[this.graph.xrange()]);
+					var pw = new SM.PiecewiseFunction([fn],[this.graph.xrange()]);
 				
 				}else{
 					var xrange = this.graph.xrange();
@@ -61,9 +61,9 @@ SVG.prototype = {
 					var curvepoints = [];
 					for(var j = 0; j <= 20; j++) {
 						var xprime = xrange.lowerbound+j*delta;
-						curvepoints.push(new Point(xprime,fn.resolve(xprime)));
+						curvepoints.push(new SM.Point(xprime,fn.resolve(xprime)));
 					}
-					var pw = PiecewiseFunction.createThirdDegSpline(curvepoints);
+					var pw = SM.PiecewiseFunction.createThirdDegSpline(curvepoints);
 				}
 				var unitspacepoints = pw.generateBezierPaths();
 				var pixelspacepoints = transformPointsets(unitspacepoints,this.graph);;

@@ -17,27 +17,25 @@
 	@param {double} points The array of points added.
 	@param {double} functions The array of functions added/formed.
 **/
-function graph(xlow,xhigh, ylow,yhigh,counter,points,functions) {
+SM.Graph = function (xlow,xhigh, ylow,yhigh,counter,points,functions) {
 	this.xlow = xlow;
 	this.xhigh = xhigh;
 	this.ylow = ylow;
 	this.yhigh = yhigh;
 	this.counter = counter;
 	this.immediate = true;
-	//var points = [];
 	this.points =points;
-	//var functions = [];
 	this.functions = functions;
 	var lsq = function(points) {
 		var linear = [new Term(1,0,'x'),new Term(1,1,'x')];
-		return Polynomial.prototype.leastSquare(points,linear);
+		return SM.Polynomial.prototype.leastSquare(points,linear);
 	}
 
 	var qsq = function(points) {
 		var quadratic =[new Term(1,0,'x'),new Term(1,1,'x'),new Term(1,2,'x')];
-		return Polynomial.prototype.leastSquare(points,quadratic);
+		return SM.Polynomial.prototype.leastSquare(points,quadratic);
 	}
-	this.datamethods = [Polynomial.prototype.LagrangeInterpolation,PiecewiseFunction.createFirstDegSpline,PiecewiseFunction.createSecondDegSpline,PiecewiseFunction.createThirdDegSpline,lsq,qsq]
+	this.datamethods = [SM.Polynomial.prototype.LagrangeInterpolation,SM.PiecewiseFunction.createFirstDegSpline,SM.PiecewiseFunction.createSecondDegSpline,SM.PiecewiseFunction.createThirdDegSpline,lsq,qsq]
 	//Todo: redo this selection system, less hardcoding	
 	this.currentinterpolator = 0;
 	this.changeInterpolation = function(value) {
@@ -69,475 +67,477 @@ function graph(xlow,xhigh, ylow,yhigh,counter,points,functions) {
 	}
 }
 
-/**
-	Read and parse input of x-range and updates the x-range.
-	@param {string} rangestring The values for xhigh and xlow as a string
-**/
-graph.prototype.changeX = function(rangestring) {
-	var pointRe = /([-]*\d*(\.\d*)*),([-]*\d*(\.\d*)*)/;
-	var pointValues = pointRe.exec(rangestring);
-	this.xlow =parseFloat( pointValues[1]);
-	this.xhigh =parseFloat( pointValues[3]);
-	this.redraw();
-
-}
-
-/**
-	Read and parse input of y-range and updates the y-range.
-	@param {string} rangestring The values for yhigh and ylow as a string
-**/
-graph.prototype.changeY = function (rangestring) {
-	var pointRe = /([-]*\d*(\.\d*)*),([-]*\d*(\.\d*)*)/;
-	var pointValues = pointRe.exec(rangestring);
-	this.ylow =parseFloat( pointValues[1]);
-	this.yhigh =parseFloat( pointValues[3]);
-	this.redraw();
-}
-
-/**
-	Calulates the X pixels per unit ratio
-	@return {double} xpu Returns the xpu value
-**/
-graph.prototype.xpu = function() {
-
-	return canvas.width/(this.xhigh - this.xlow);
-}
-
-
-/**
-	Calulates the Y pixels per unit ratio
-	@return {double} ypu Returns the ypu value
-**/
-graph.prototype.ypu = function() {
-
-	return canvas.height/(this.yhigh - this.ylow);
-}
-
-/**
-	Adds a point to the array of points to be interpolated. 
-	It also checks if the point is outside the current viewing window and 
-	adjusts if necessary. 
-	@param {Point} newpoint The newpoint to be drawn
-**/
-graph.prototype.addPoint = function(newpoint)
-{
-	var previouspoint =this.points[this.points.length-1];
-	if(previouspoint != undefined) {
-		if(newpoint.x == previouspoint.x && newpoint.y == previouspoint.y) 
-			return;
-	}
-	//This ^ handles a common failure case of the graph object and double clicking.
-	this.points.push(newpoint);
-	var redrawrequired = false;
-	if(newpoint.x >= this.xhigh)
-	{
-		this.xhigh = newpoint.x + (newpoint.x-this.xlow)/4;	
-		redrawrequired = true;
-	}
-	if(newpoint.x <= this.xlow)
-	{
-		this.xlow = newpoint.x - (this.xhigh-newpoint.x)/4;	
-		redrawrequired = true;
-	}
-
-	if(newpoint.y >= this.yhigh)
-	{
-		this.yhigh = newpoint.y +(newpoint.y-this.ylow)/4;	
-		redrawrequired = true;
-	}
-	if(newpoint.y <= this.ylow)
-	{
-		this.ylow = newpoint.y -(this.yhigh-newpoint.y)/4;	
-		redrawrequired = true;
-	}
-	$("#x_range").val(this.xlow+","+this.xhigh);
-	$("#y_range").val(this.ylow+","+this.yhigh);
-	$("#s_points").append('<option>'+newpoint+'</option>');
-	if(this.immediate) {
-		this.generateFunction();	
-	}
-
-	if(redrawrequired) {
+SM.Graph.prototype = {
+	/**
+		Read and parse input of x-range and updates the x-range.
+		@param {string} rangestring The values for xhigh and xlow as a string
+	**/
+	changeX:  function(rangestring) {
+		var pointRe = /([-]*\d*(\.\d*)*),([-]*\d*(\.\d*)*)/;
+		var pointValues = pointRe.exec(rangestring);
+		this.xlow =parseFloat( pointValues[1]);
+		this.xhigh =parseFloat( pointValues[3]);
 		this.redraw();
-	}else{
-		this.drawLatest();
-	}
-	
 
-}
+	},
 
-/**
-	Create a new function based on the current points and method and add it to the functions array
-**/
-graph.prototype.generateFunction = function() {
-	if(this.points.length >1)
+	/**
+		Read and parse input of y-range and updates the y-range.
+		@param {string} rangestring The values for yhigh and ylow as a string
+	**/
+	changeY:  function (rangestring) {
+		var pointRe = /([-]*\d*(\.\d*)*),([-]*\d*(\.\d*)*)/;
+		var pointValues = pointRe.exec(rangestring);
+		this.ylow =parseFloat( pointValues[1]);
+		this.yhigh =parseFloat( pointValues[3]);
+		this.redraw();
+	},
+
+	/**
+		Calulates the X pixels per unit ratio
+		@return {double} xpu Returns the xpu value
+	**/
+	xpu:  function() {
+
+		return canvas.width/(this.xhigh - this.xlow);
+	},
+
+
+	/**
+		Calulates the Y pixels per unit ratio
+		@return {double} ypu Returns the ypu value
+	**/
+	ypu: function() {
+
+		return canvas.height/(this.yhigh - this.ylow);
+	},
+
+	/**
+		Adds a point to the array of points to be interpolated. 
+		It also checks if the point is outside the current viewing window and 
+		adjusts if necessary. 
+		@param {Point} newpoint The newpoint to be drawn
+	**/
+	addPoint: function(newpoint)
 	{
-		var newpoly = this.datamethods[this.currentinterpolator](this.points);		
-		newpoly.color = this.pickColor(); 
-		this.functions.push(newpoly);
-		$("#s_functionlist").append('<option>'+newpoly+'</option>');
-	}
-}
-
-/**
-	Draws all points currently in array onto graph
-**/
-graph.prototype.drawPoints = function()
-{
-   var c = canvas.getContext('2d');
-   c.fillStyle = "red";
-   var xpu = this.xpu();
-   var ypu = this.ypu();
-
-   for (var i = 0; i < this.points.length; i++) {
-	var pixelx =(this.points[i].x-this.xlow) * xpu ;
-	var pixely =canvas.height -(this.points[i].y-this.ylow)* ypu;
-	c.fillRect(pixelx-2,pixely-2,5,5);
-   }
-}
-
-/**
-	Draws the axes of the graph along with the gridlines within
-**/
-graph.prototype.drawAxes = function()
-{
-	var c = canvas.getContext('2d');
-	var xsituation =0; 
-	var xpu = this.xpu();
-	var ypu = this.ypu(); 
-
-	// draws vertical lines on grid
-	c.strokeStyle = "#ccc";
-	c.beginPath();
-	c.lineWidth =1;
-	var xdivision = xpu;
-	while((canvas.width/xdivision) > 32)
-	{
-		xdivision *=2;
-	}
-	for(var x = 0; x < canvas.width; x += xdivision) {
-		var x2 = this.xlow+x/xpu;
-		if(x2.toString().length >5 )
+		var previouspoint =this.points[this.points.length-1];
+		if(previouspoint != undefined) {
+			if(newpoint.x == previouspoint.x && newpoint.y == previouspoint.y) 
+				return;
+		}
+		//This ^ handles a common failure case of the graph object and double clicking.
+		this.points.push(newpoint);
+		var redrawrequired = false;
+		if(newpoint.x >= this.xhigh)
 		{
-			x2 = x2.toFixed(1);
+			this.xhigh = newpoint.x + (newpoint.x-this.xlow)/4;	
+			redrawrequired = true;
+		}
+		if(newpoint.x <= this.xlow)
+		{
+			this.xlow = newpoint.x - (this.xhigh-newpoint.x)/4;	
+			redrawrequired = true;
 		}
 
-		c.moveTo(x, 0);
-		c.lineTo(x, canvas.height);
-		c.stroke();
-		c.fillStyle = "black";
-		c.font = "bold 10pt Times";
-		c.fillText(x2, x+2, canvas.height - 5);
-	}
-
-
-	// draws horizontal lines on grid
-	var ydivision = ypu;
-	while((canvas.width/ydivision) > 32)
-	{
-		ydivision *=2;
-	}
-	c.strokeStyle = "#ccc";
-	c.beginPath();
-	for(var y = 0; y < canvas.height; y += ydivision) {
-		var y2 = this.ylow+(canvas.height-y)/ypu;
-		if(y2.toString().length > 5)
+		if(newpoint.y >= this.yhigh)
 		{
-			y2 = y2.toFixed(1);
+			this.yhigh = newpoint.y +(newpoint.y-this.ylow)/4;	
+			redrawrequired = true;
+		}
+		if(newpoint.y <= this.ylow)
+		{
+			this.ylow = newpoint.y -(this.yhigh-newpoint.y)/4;	
+			redrawrequired = true;
+		}
+		$("#x_range").val(this.xlow+","+this.xhigh);
+		$("#y_range").val(this.ylow+","+this.yhigh);
+		$("#s_points").append('<option>'+newpoint+'</option>');
+		if(this.immediate) {
+			this.generateFunction();	
 		}
 
-		c.moveTo(0, y);
-		c.lineTo(canvas.width, y);
-		c.stroke();
-		c.fillStyle = "black";
-		c.font = "bold 10pt Times";
-		c.fillText(y2, 5, y-3);
-	}
-	c.strokeStyle="black";
-	c.beginPath();
-	c.lineWidth =5;
-	c.moveTo(canvas.width,canvas.height);
-	c.lineTo(0,canvas.height);
-	c.stroke();
-	c.moveTo(0,0);
-	c.lineTo(0,canvas.height);
-	c.stroke();
-}
-
-/**
-	Draws the backdrop of the graph
-**/
-graph.prototype.redraw = function()
-{
-	var c = canvas.getContext('2d');
-	c.fillStyle= "white";
-	c.fillRect(0,0,canvas.width,canvas.height);
-	this.drawAxes();
-	var workersupport = true;
-	if(typeof(this.workers[0]) === "undefined") {
-		workersupport = false;	
-	}
-	if(this.functions.length >0)
-	{
-		for(var i=0; i <this.functions.length; i++)
-		{
-			if(workersupport) {
-				this.workers[i%this.workers.length].postMessage({
-					"cmd":"calc",
-					"startx":this.xlow,
-					"ylow":this.ylow,
-					"yhigh":this.yhigh,
-					"range":this.xhigh-this.xlow,
-					"fn":this.functions[i].toWebWorker()
-				});
-			}else{
-				this.drawFunction(this.functions[i]);
-			}
+		if(redrawrequired) {
+			this.redraw();
+		}else{
+			this.drawLatest();
 		}
-	}
-	this.drawPoints();
-
-
-}
-
-/**
-	Draw the latest function added
-**/
-graph.prototype.drawLatest = function()
-{
-	var c = canvas.getContext('2d');
-	if(this.functions.length >0)
-	{
 		
-		this.drawFunction(this.functions[this.functions.length-1]);
-	}
-	this.drawPoints();
 
+	},
 
-}
-/**
-	Draws a function on the graph by drawing lines between calculated points.
-	@param {Polynomial|Term} interpolated The interpolated function
-**/
-graph.prototype.drawFunction = function(interpolated)
-{
+	/**
+		Create a new function based on the current points and method and add it to the functions array
+	**/
+	generateFunction: function() {
+		if(this.points.length >1)
+		{
+			var newpoly = this.datamethods[this.currentinterpolator](this.points);		
+			newpoly.color = this.pickColor(); 
+			this.functions.push(newpoly);
+			$("#s_functionlist").append('<option>'+newpoly+'</option>');
+		}
+	},
 
-	var range = this.xhigh - this.xlow;
-	var plist = [];
-//	for(var i=0; i < range; i+=range/128)
-	var ingraph = false;
-	var oldery;
-	for(var i=0; i < range; i+=range/512)
+	/**
+		Draws all points currently in array onto graph
+	**/
+	drawPoints:  function()
 	{
-		var x = this.xlow+i;
-		var newy = interpolated.resolve(x);
-		if(newy != undefined) {
-			if(newy >= this.ylow && newy <= this.yhigh) {
-				if(ingraph == false && oldery != undefined) {
-					plist.push(oldery);	
-				}
-				plist.push(new Point(x,newy));	
-				ingraph = true;
-			}else if(ingraph == true) {
-				plist.push(new Point(x,newy));	
-				ingraph = false;
+	   var c = canvas.getContext('2d');
+	   c.fillStyle = "red";
+	   var xpu = this.xpu();
+	   var ypu = this.ypu();
+
+	   for (var i = 0; i < this.points.length; i++) {
+		var pixelx =(this.points[i].x-this.xlow) * xpu ;
+		var pixely =canvas.height -(this.points[i].y-this.ylow)* ypu;
+		c.fillRect(pixelx-2,pixely-2,5,5);
+	   }
+	},
+
+	/**
+		Draws the axes of the graph along with the gridlines within
+	**/
+	drawAxes:  function()
+	{
+		var c = canvas.getContext('2d');
+		var xsituation =0; 
+		var xpu = this.xpu();
+		var ypu = this.ypu(); 
+
+		// draws vertical lines on grid
+		c.strokeStyle = "#ccc";
+		c.beginPath();
+		c.lineWidth =1;
+		var xdivision = xpu;
+		while((canvas.width/xdivision) > 32)
+		{
+			xdivision *=2;
+		}
+		for(var x = 0; x < canvas.width; x += xdivision) {
+			var x2 = this.xlow+x/xpu;
+			if(x2.toString().length >5 )
+			{
+				x2 = x2.toFixed(1);
 			}
-			oldery = new Point(x,newy);
-		}
-	}
-	//console.log(plist);
-	plist.sort(function(a,b) {
-		if(a.x > b.x)
-		{
-			return 1;
-		}
-		if(a.x < b.x)
-		{
-			return -1;
-		}		
-		return 0;
-	});
 
-	//console.log(plist);
-	var xpu = this.xpu();
-	var ypu = this.ypu(); 
-	var c = canvas.getContext('2d');
-	c.beginPath();
-	if(!interpolated.color) {
-		interpolated.color = this.pickColor(); 
-	}
-	c.strokeStyle=interpolated.color;
-	c.lineWidth = 2;
-	var pixelx =(plist[0].x-this.xlow) * xpu ;
-	var pixely =canvas.height -(plist[0].y-this.ylow)* ypu;
-	c.moveTo(pixelx,pixely);
-	for(var i=1; i < plist.length; i++)
-	{
-		var oldx = pixelx;
-		var oldy = pixely;
-		pixelx =(plist[i].x-this.xlow) * xpu ;
-		pixely =canvas.height -(plist[i].y-this.ylow)* ypu;
-		c.lineTo(pixelx,pixely) ;	
-		//c.bezierCurveTo(oldx,pixely,pixelx,oldy,pixelx,pixely);
+			c.moveTo(x, 0);
+			c.lineTo(x, canvas.height);
+			c.stroke();
+			c.fillStyle = "black";
+			c.font = "bold 10pt Times";
+			c.fillText(x2, x+2, canvas.height - 5);
+		}
+
+
+		// draws horizontal lines on grid
+		var ydivision = ypu;
+		while((canvas.width/ydivision) > 32)
+		{
+			ydivision *=2;
+		}
+		c.strokeStyle = "#ccc";
+		c.beginPath();
+		for(var y = 0; y < canvas.height; y += ydivision) {
+			var y2 = this.ylow+(canvas.height-y)/ypu;
+			if(y2.toString().length > 5)
+			{
+				y2 = y2.toFixed(1);
+			}
+
+			c.moveTo(0, y);
+			c.lineTo(canvas.width, y);
+			c.stroke();
+			c.fillStyle = "black";
+			c.font = "bold 10pt Times";
+			c.fillText(y2, 5, y-3);
+		}
+		c.strokeStyle="black";
+		c.beginPath();
+		c.lineWidth =5;
+		c.moveTo(canvas.width,canvas.height);
+		c.lineTo(0,canvas.height);
 		c.stroke();
-	}
-}
-
-/**
-	Draws a curve defined by points
-	@param {Point[]} points The points to be plotted and connected;
-**/
-graph.prototype.plotAndConnectPoints = function(points) {
-	points.points.sort(function(a,b) {
-		if(a.x > b.x)
-		{
-			return 1;
-		}
-		if(a.x < b.x)
-		{
-			return -1;
-		}		
-		return 0;
-	});
-
-	var xpu = this.xpu();
-	var ypu = this.ypu(); 
-	var c = canvas.getContext('2d');
-	c.beginPath();
-	if(!points.color) {
-		c.strokeStyle=this.pickColor();
-	}else{
-		c.strokeStyle=points.color;
-	}
-	c.lineWidth = 2;
-	var pixelx =(points.points[0].x-this.xlow) * xpu ;
-	var pixely =canvas.height -(points.points[0].y-this.ylow)* ypu;
-	c.moveTo(pixelx,pixely);
-	for(var i=1; i < points.points.length; i++)
-	{
-		var oldx = pixelx;
-		var oldy = pixely;
-		pixelx =(points.points[i].x-this.xlow) * xpu ;
-		pixely =canvas.height -(points.points[i].y-this.ylow)* ypu;
-		c.lineTo(pixelx,pixely) ;	
+		c.moveTo(0,0);
+		c.lineTo(0,canvas.height);
 		c.stroke();
-	}
-}
+	},
 
-/**
-	Removes the chosen point from the graph
-	@param {String} p The point to be removed
-**/
-graph.prototype.removePoint = function(p)
-{
-	for(var i=0; i < this.points.length; i++)
+	/**
+		Draws the backdrop of the graph
+	**/
+	redraw: function()
 	{
-		if(p == this.points[i].toString())
-		{
-			this.points.splice(i,1);
+		var c = canvas.getContext('2d');
+		c.fillStyle= "white";
+		c.fillRect(0,0,canvas.width,canvas.height);
+		this.drawAxes();
+		var workersupport = true;
+		if(typeof(this.workers[0]) === "undefined") {
+			workersupport = false;	
 		}
+		if(this.functions.length >0)
+		{
+			for(var i=0; i <this.functions.length; i++)
+			{
+				if(workersupport) {
+					this.workers[i%this.workers.length].postMessage({
+						"cmd":"calc",
+						"startx":this.xlow,
+						"ylow":this.ylow,
+						"yhigh":this.yhigh,
+						"range":this.xhigh-this.xlow,
+						"fn":this.functions[i].toWebWorker()
+					});
+				}else{
+					this.drawFunction(this.functions[i]);
+				}
+			}
+		}
+		this.drawPoints();
 
-	}
-	$("#s_points :selected").remove();
-	this.redraw();
 
-}
+	},
 
-/**
-	Removes all points from the graph
-**/
-graph.prototype.removeAllPoints = function()
-{
-	this.points = [];
-	$("#s_points").empty();
-	this.redraw();
-}
-
-/**
-	Removes the chosen function from the graph
-	@param {String} f The function to be removed
-**/
-graph.prototype.removeFunction = function(f)
-{
-	for(var i=0; i < this.functions.length; i++)
+	/**
+		Draw the latest function added
+	**/
+	drawLatest: function()
 	{
-		if(f == this.functions[i].toString())
+		var c = canvas.getContext('2d');
+		if(this.functions.length >0)
 		{
-			this.functions.splice(i,1);
+			
+			this.drawFunction(this.functions[this.functions.length-1]);
 		}
+		this.drawPoints();
 
-	}
-	$("#s_functionlist :selected").remove();
-	this.redraw();
 
-}
+	},
+	/**
+		Draws a function on the graph by drawing lines between calculated points.
+		@param {Polynomial|Term} interpolated The interpolated function
+	**/
+	drawFunction: function(interpolated)
+	{
 
-/**
-	Removes all functions from the graph
-**/
-graph.prototype.removeAllFunctions = function()
-{
-	this.functions = [];
-	$("#s_functionlist").empty();
-	this.redraw();
-}
+		var range = this.xhigh - this.xlow;
+		var plist = [];
+	//	for(var i=0; i < range; i+=range/128)
+		var ingraph = false;
+		var oldery;
+		for(var i=0; i < range; i+=range/512)
+		{
+			var x = this.xlow+i;
+			var newy = interpolated.resolve(x);
+			if(newy != undefined) {
+				if(newy >= this.ylow && newy <= this.yhigh) {
+					if(ingraph == false && oldery != undefined) {
+						plist.push(oldery);	
+					}
+					plist.push(new SM.Point(x,newy));	
+					ingraph = true;
+				}else if(ingraph == true) {
+					plist.push(new SM.Point(x,newy));	
+					ingraph = false;
+				}
+				oldery = new SM.Point(x,newy);
+			}
+		}
+		//console.log(plist);
+		plist.sort(function(a,b) {
+			if(a.x > b.x)
+			{
+				return 1;
+			}
+			if(a.x < b.x)
+			{
+				return -1;
+			}		
+			return 0;
+		});
 
-/**
-	Clears all points and functions from the graph
-**/
-graph.prototype.clear = function()
-{
-		this.functions = [];
-		$("#s_functionlist").empty();
+		//console.log(plist);
+		var xpu = this.xpu();
+		var ypu = this.ypu(); 
+		var c = canvas.getContext('2d');
+		c.beginPath();
+		if(!interpolated.color) {
+			interpolated.color = this.pickColor(); 
+		}
+		c.strokeStyle=interpolated.color;
+		c.lineWidth = 2;
+		var pixelx =(plist[0].x-this.xlow) * xpu ;
+		var pixely =canvas.height -(plist[0].y-this.ylow)* ypu;
+		c.moveTo(pixelx,pixely);
+		for(var i=1; i < plist.length; i++)
+		{
+			var oldx = pixelx;
+			var oldy = pixely;
+			pixelx =(plist[i].x-this.xlow) * xpu ;
+			pixely =canvas.height -(plist[i].y-this.ylow)* ypu;
+			c.lineTo(pixelx,pixely) ;	
+			//c.bezierCurveTo(oldx,pixely,pixelx,oldy,pixelx,pixely);
+			c.stroke();
+		}
+	},
+
+	/**
+		Draws a curve defined by points
+		@param {Point[]} points The points to be plotted and connected;
+	**/
+	plotAndConnectPoints: function(points) {
+		points.points.sort(function(a,b) {
+			if(a.x > b.x)
+			{
+				return 1;
+			}
+			if(a.x < b.x)
+			{
+				return -1;
+			}		
+			return 0;
+		});
+
+		var xpu = this.xpu();
+		var ypu = this.ypu(); 
+		var c = canvas.getContext('2d');
+		c.beginPath();
+		if(!points.color) {
+			c.strokeStyle=this.pickColor();
+		}else{
+			c.strokeStyle=points.color;
+		}
+		c.lineWidth = 2;
+		var pixelx =(points.points[0].x-this.xlow) * xpu ;
+		var pixely =canvas.height -(points.points[0].y-this.ylow)* ypu;
+		c.moveTo(pixelx,pixely);
+		for(var i=1; i < points.points.length; i++)
+		{
+			var oldx = pixelx;
+			var oldy = pixely;
+			pixelx =(points.points[i].x-this.xlow) * xpu ;
+			pixely =canvas.height -(points.points[i].y-this.ylow)* ypu;
+			c.lineTo(pixelx,pixely) ;	
+			c.stroke();
+		}
+	},
+
+	/**
+		Removes the chosen point from the graph
+		@param {String} p The point to be removed
+	**/
+	removePoint: function(p)
+	{
+		for(var i=0; i < this.points.length; i++)
+		{
+			if(p == this.points[i].toString())
+			{
+				this.points.splice(i,1);
+			}
+
+		}
+		$("#s_points :selected").remove();
+		this.redraw();
+
+	},
+
+	/**
+		Removes all points from the graph
+	**/
+	removeAllPoints: function()
+	{
 		this.points = [];
 		$("#s_points").empty();
 		this.redraw();
-}
+	},
 
-/**
-	Provide graphs current x-range
-	@return {Range} 
-**/
-graph.prototype.xrange = function() 
-{
-	return new Range("["+this.xlow+","+this.xhigh+"]");
-}
+	/**
+		Removes the chosen function from the graph
+		@param {String} f The function to be removed
+	**/
+	removeFunction: function(f)
+	{
+		for(var i=0; i < this.functions.length; i++)
+		{
+			if(f == this.functions[i].toString())
+			{
+				this.functions.splice(i,1);
+			}
 
-/**
-	Provide graphs current y-range
-	@return {Range} 
-**/
-graph.prototype.yrange = function() 
-{
-	return new Range("["+this.ylow+","+this.yhigh+"]");
-}
+		}
+		$("#s_functionlist :selected").remove();
+		this.redraw();
 
-/**
-	Convert point in unit space to pixel space
-	@param {Point} point The point to be translated
-	@return {Point} The point in pixel space
-**/
-graph.prototype.pointToPixel = function(point) {
-	var xpu = this.xpu();
-	var ypu = this.ypu(); 
-	var pixelx =(point.x-this.xlow) * xpu ;
-	var pixely =canvas.height -(point.y-this.ylow)* ypu;
-	return new Point(pixelx,pixely);
-}
+	},
 
-graph.prototype.addFunction = function(fn) {
-	fn.color = this.pickColor(); 
-	this.functions.push(fn);
+	/**
+		Removes all functions from the graph
+	**/
+	removeAllFunctions: function()
+	{
+		this.functions = [];
+		$("#s_functionlist").empty();
+		this.redraw();
+	},
 
-}
+	/**
+		Clears all points and functions from the graph
+	**/
+	clear: function()
+	{
+			this.functions = [];
+			$("#s_functionlist").empty();
+			this.points = [];
+			$("#s_points").empty();
+			this.redraw();
+	},
+
+	/**
+		Provide graphs current x-range
+		@return {Range} 
+	**/
+	xrange: function() 
+	{
+		return new SM.Range("["+this.xlow+","+this.xhigh+"]");
+	},
+
+	/**
+		Provide graphs current y-range
+		@return {Range} 
+	**/
+	yrange: function() 
+	{
+		return new SM.Range("["+this.ylow+","+this.yhigh+"]");
+	},
+
+	/**
+		Convert point in unit space to pixel space
+		@param {Point} point The point to be translated
+		@return {Point} The point in pixel space
+	**/
+	pointToPixel: function(point) {
+		var xpu = this.xpu();
+		var ypu = this.ypu(); 
+		var pixelx =(point.x-this.xlow) * xpu ;
+		var pixely =canvas.height -(point.y-this.ylow)* ypu;
+		return new SM.Point(pixelx,pixely);
+	},
+
+	addFunction: function(fn) {
+		fn.color = this.pickColor(); 
+		this.functions.push(fn);
+
+	},
 
 
-graph.prototype.pickColor = function() {
-	
-	var COLOR = ['Blue','LimeGreen','Gold','Sienna','DarkRed','LightSlateGray','Purple','Black'];
-	var fncolor = COLOR[this.counter%COLOR.length];  
-	this.counter++;
-	return fncolor;
+	pickColor: function() {
+		
+		var COLOR = ['Blue','LimeGreen','Gold','Sienna','DarkRed','LightSlateGray','Purple','Black'];
+		var fncolor = COLOR[this.counter%COLOR.length];  
+		this.counter++;
+		return fncolor;
+	}
 }
 /*
 var newresult = [];

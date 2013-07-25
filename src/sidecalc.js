@@ -1,9 +1,9 @@
 importScripts("algebra.js");
 "use strict";
 var classify ={}; 
-classify[Term.serializeName] = Term.fromWebWorker;
-classify[Polynomial.serializeName] = Polynomial.fromWebWorker;
-classify[PiecewiseFunction.serializeName] = PiecewiseFunction.fromWebWorker;
+classify[SM.Term.serializeName] = SM.Term.fromWebWorker;
+classify[SM.Polynomial.serializeName] = SM.Polynomial.fromWebWorker;
+classify[SM.PiecewiseFunction.serializeName] = SM.PiecewiseFunction.fromWebWorker;
 
 var currentfunction;
 onmessage = function(event) {
@@ -24,13 +24,13 @@ onmessage = function(event) {
 					if(ingraph == false && oldery != undefined) {
 						plist.push(oldery);	
 					}
-					plist.push(new Point(x,newy));	
+					plist.push(new SM.Point(x,newy));	
 					ingraph = true;
 				}else if(ingraph == true) {
-					plist.push(new Point(x,newy));	
+					plist.push(new SM.Point(x,newy));	
 					ingraph = false;
 				}
-				oldery = new Point(x,newy);
+				oldery = new SM.Point(x,newy);
 			}
 		}
 		postMessage({points:plist,color:fn.color});

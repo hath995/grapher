@@ -1,0 +1,37 @@
+{
+	"documentation":{
+		"ja":""
+	}
+	"Numeric Interpolation Demo by Aaron R Elligsen (A work in progress)":{"ja":"Aaron Elligsenによって数値補間デモ"},
+
+	"To Unit Tests":{"ja":"ユニとテストへ"},
+	"To Documentation":{"ja":"ドキュメンテーション"}, 
+	"To Github":{"ja":"Githubへ"},
+	"Ranges may be entered like so: x1,x2 or [x1,x2]":{"ja":"値域"},
+	"Points can also be added by clicking on the graph":{"ja":"点"},
+
+	"X-Range:":{"ja":"X−値域"},  
+	"Y-Range:":{"ja":"Y−値域"},  
+
+	"Save as SVG":{"ja":"SVGをダウンロード"},
+	 
+	"Add Point":{"ja":"点加える"},
+	"Remove Point":{"ja":"点を取り除く"},
+	"Remove All Points":{"ja":"全部点を取り除く"},
+	 
+	"Remove Function":{"ja":"関数を取り除く"},
+	"Remove All Functions":{"ja":"全部関数"},
+
+	"Clear All":{"ja":"全部取り払う"},
+	"Function Type":{"ja":"関数型"},
+	"Polynomial Interpolation":{"ja":"多項式補間"},
+	"1st Degree Spline":{"ja":"第1回程度スプライン"},
+	"2nd Degree Spline":{"ja":"第2回程度スプライン"},
+	"Natural Cubic Spline":{"ja":""},
+	"Linear Least Square":{"ja":""},
+	"Quadratic Least Square":{"ja":""},
+	"Immediate Mode":{"ja":""},
+	"Generate Function":{"ja":"関数作る"},
+	"Selected Equation":{"ja":""},
+}
+

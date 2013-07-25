@@ -6,12 +6,15 @@
 	MATH 351 - FALL 2012
 **/
 "use strict";
+
+var SM = SM || {}; //Simple Math
+
 /**
 	A pseudo-constructor which reatttaches methods to an object which has been 
 	passed through JSON serialization
 	@param {Object} serialized A 'class' object but without the attached methods
 **/
-function reattachMethods(serialized,originalclass) {
+SM.reattachMethods = function(serialized,originalclass) {
 	serialized.__proto__ = originalclass.prototype;
 	if(!(serialized instanceof originalclass)) {
 		for(var property in originalclass.prototype) {
@@ -34,7 +37,7 @@ function reattachMethods(serialized,originalclass) {
 		immplement isMathchingPowers
 		fix the resolve functions to yield partial functions
 **/
-function Term(coefficient, power, variable)
+SM.Term = function(coefficient, power, variable)
 {
 	if(variable === undefined || power === undefined || coefficient === undefined) {
 		throw new Error("Cofficient, power, and variable expected in parameters.");
@@ -67,386 +70,389 @@ function Term(coefficient, power, variable)
 	@constant
 	@static
 **/
-Term.serializeName = 'Term';
-
-/**
-	Stringify the object but with additional property to help deserialization
-	@return {Object} object to JSON stringify 
-**/
-Term.prototype.toWebWorker = function() {
-	this.serializeName = Term.serializeName;
-	return this;
-};
+SM.Term.serializeName = 'Term';
 
 /**
 	Reattaches class methods to destringified object
 	@param {Object} that A Term stripped of methods
 	@static
 **/
-Term.fromWebWorker = function(that) {
-	reattachMethods(that,Term);	
+SM.Term.fromWebWorker = function(that) {
+	SM.reattachMethods(that,SM.Term);	
 };
 
-/**
-	Compare two terms if they have matching variable sets
-	@private 
-	@param {Term} that The term being compared
-	@return {Boolean}
-**/
-Term.prototype.isMatchingVariables = function(that) {
-	var leftcontained = true;
-	var rightcontained = true;
-	for(var v in this.variable) {
-		if(that.variable[v] === undefined) {
-			leftcontained = false;
-		}
-	}
+SM.Term.prototype = {
+	/**
+		Stringify the object but with additional property to help deserialization
+		@return {Object} object to JSON stringify 
+	**/
+	toWebWorker: function() {
+		this.serializeName = SM.Term.serializeName;
+		return this;
+	},
 
-	for(var v in that.variable) {
-		if(this.variable[v] === undefined) {
-			rightcontained = false;
-		}
-	}	
-	return leftcontained && rightcontained;
-};
 
-/**
-	Compare if two terms have matching variables and powers
-	@private
-	@param {Term} that The term being compared
-	@return {Boolean}
-**/
-Term.prototype.isMatchingPowers = function(that) {
-	var matching = true;
-	if(this.power.length != that.power.length) {
-		return false;
-	}else{
+
+	/**
+		Compare two terms if they have matching variable sets
+		@private 
+		@param {Term} that The term being compared
+		@return {Boolean}
+	**/
+	isMatchingVariables: function(that) {
+		var leftcontained = true;
+		var rightcontained = true;
 		for(var v in this.variable) {
-			if(this.power[this.variable[v]] != that.power[that.variable[v]]) {
-				matching = false;
+			if(that.variable[v] === undefined) {
+				leftcontained = false;
 			}
 		}
-	}
-	return matching;
-};
 
-/**
-	Returns the additive invese of the term
-	@return {Term}  
-**/
-Term.prototype.neg = function() {
-	return new Term(0-this.coefficient,this.power,this.variable);
-};
-
-
-/**
-	Adds a term,polynomial, or constant to an existing term
-	@param {Term|Polynomial|double} summand The summad being added to the term
-	@return {Term|Polynomial} The result of the summation
-
-**/
-Term.prototype.add = function(summand) {
-	if(summand instanceof Term)
-	{
-		if(this.isMatchingVariables(summand) )
-		{
-			if(this.isMatchingPowers(summand) )
-			{
-				var sumofterms = new Term(this.coefficient + summand.coefficient,this.power,this.variable);
-				return sumofterms;
-				
-			}else{
-				
-				return new Polynomial([this,summand]);
+		for(var v in that.variable) {
+			if(this.variable[v] === undefined) {
+				rightcontained = false;
 			}
+		}	
+		return leftcontained && rightcontained;
+	},
+
+	/**
+		Compare if two terms have matching variables and powers
+		@private
+		@param {Term} that The term being compared
+		@return {Boolean}
+	**/
+	isMatchingPowers: function(that) {
+		var matching = true;
+		if(this.power.length != that.power.length) {
+			return false;
 		}else{
-			
-			return new Polynomial([this,summand]);
-		}
-	}else if(summand instanceof Polynomial) {
-		return summand.add(this);
-	}else if(typeof summand === "number") {
-		for(var k in this.variable) {
-			break;
-		}
-		var constant = new Term(summand,0,k);
-		var newpoly = new Polynomial([this,constant]);
-		return newpoly; 
-	}
-};
-
-/**
-	Subtract a term, or constant from an existing term
-	@param {Term|double} summand The summand being subtract from the term
-	@return {Term|Polynomial} The result of the summation
-**/
-Term.prototype.subtract = function(summand) {
-	if(summand instanceof Term)
-	{
-		return this.add(summand.neg());
-	}else if(summand instanceof Polynomial) {
-		var newpoly = summand.terms.slice();
-		for(var i=0; i< newpoly.length; i++) {
-			newpoly[i] = newpoly[i].neg();
-		}
-		var difference = new Polynomial(newpoly);
-		return difference.add(this);
-	}else if(typeof summand === "number") {
-		var constant = new Term(0-summand,0,'x');
-		return new Polynomial([this,constant]);
-	}
-};
-
-/**
-	Multiply a term, Polynomial, or constant to an existing term
-	@param {Term|Polynomial|double} multiplicand The multiplicand in the product
-	@return {Term|Polynomial} The product
-**/
-Term.prototype.multiply = function(multiplicand) {
-	var newcoef;
-	var newpowers = [];
-	var newvars = {};
-	if(multiplicand instanceof Term)
-	{
-		newcoef = this.coefficient*multiplicand.coefficient;
-		var varcount = 0;
-		for(var v in this.variable) {
-			//if(newvars[v] == undefined) {
-				newvars[v] = varcount;
-				newpowers[varcount] = this.power[this.variable[v]];
-				varcount++;
-			//}
-		}
-		for(var v in multiplicand.variable) {
-			if(newvars[v] === undefined) {
-				newvars[v] = varcount;
-				newpowers[varcount] = multiplicand.power[multiplicand.variable[v]];
-				varcount++;
-			}else{
-				newpowers[newvars[v]] += multiplicand.power[multiplicand.variable[v]];
-			}
-		}
-				
-		
-	}else if(multiplicand instanceof Polynomial) {
-		return multiplicand.multiply(this);
-	}else if(typeof multiplicand === "number") {
-		
-			newcoef = this.coefficient*multiplicand;
-			newvars = this.variable;
-			newpowers = this.power.slice();
-	}
-	var tempterm = new Term(newcoef,newpowers,newvars);
-	return tempterm;
-};
-
-/**
-	Divide a term by another term or a constant
-	@param {Term|double} denominator The denominator of the divisor 
-	@return {Term|Polynomial} The quotient 
-**/
-Term.prototype.divide = function(denominator) {
-	if(denominator instanceof Term)
-	{
-		var newcoef = this.coefficient/denominator.coefficient;
-		var newpowers = [];
-		var newvars = {};
-		var varcount = 0;
-		for(var v in this.variable) {
-			//if(newvars[v] == undefined) {
-				newvars[v] = varcount;
-				newpowers[varcount] = this.power[this.variable[v]];
-				varcount++;
-			//}
-		}
-		for(var v in denominator.variable) {
-			if(newvars[v] === undefined) {
-				newvars[v] = varcount;
-				newpowers[varcount] = 0-denominator.power[denominator.variable[v]];
-				varcount++;
-			}else{
-				newpowers[newvars[v]] -= denominator.power[denominator.variable[v]];
-			}
-		}
-		var tempterm = new Term(newcoef,newpowers,newvars);
-		return tempterm;
-	}else if(typeof denominator === "number") {
-		
-			var tempterm = new Term(this.coefficient/denominator,this.power,this.variable);
-			return tempterm;
-	}
-};
-
-/**
-	Produce powers of a Term 
-	@param {Integer} exponent the power to be raised by
-	@return {Term} the power of the input
-**/
-Term.prototype.exponentiate = function(exponent) {
-	var newpowers = [];
-	for(var i =0; i < this.power.length; i++ ) {
-		newpowers[i] = this.power[i]*exponent;
-	}
-	return new Term(Math.pow(this.coefficient,exponent),newpowers,this.variable);
-
-};
-
-/**
-	Generates a pretty printed version of the term.
-	@return {String} Returns a string version of the term
-**/
-Term.prototype.toString = function () { 
-	var retstring ="";
-	if(this.coefficient === 0)
-	{
-		return "";
-	}else if(this.coefficient === -1) {
-		retstring += '-';
-	}else if(this.coefficient !== 1) {
-		retstring += this.coefficient;
-	}
-
-	var isconstant = true;
-	for(var i=0; i < this.power.length; i++) {
-		if(this.power[i] !== 0) {
-			isconstant = false;
-		}
-	}
-	if(isconstant) {
-		if(this.coefficient === 1 )
-		{
-			retstring += this.coefficient;
-		} 
-		if(this.coefficient === -1) {
-			retstring += 1;
-		}
-	}
-	var trouble; //hackery here to remove extraneous *'s from the toString
-	for(var v in this.variable) {
-		trouble = false;
-		var thepower = this.power[this.variable[v]]; 
-		if(thepower !== 0) 
-		{
-			if(thepower === 1)
-			{
-
-				//retstring += this.variable
-				retstring += v; 
-			}else{
-				retstring += v; 
-				retstring +="^"+thepower+"*";
-				trouble = true;
-			}
-		}
-	}
-	if(trouble) {
-		retstring = retstring.slice(0,-1);
-	}
-	return retstring;
-	
-};
-
-/**
-	Generate a formated string representing a term.
-	@return {String} Return the term in formatted string
-**/
-Term.prototype.serialize = function() {
-	var retstring =""+this.coefficient;
-	for(var v in this.variable) {
-		retstring += ""+v+"^"+this.power[this.variable[v]];
-	}
-	return retstring; 
-};
-
-/**
-	@param {double|Object} value Evaluate the term for the value
-	@return {double|Term} The result of the function
-**/
-Term.prototype.resolve = function(value) {
-	var isnomial = value instanceof Term || value instanceof Polynomial;
-	if(this.power.length == 1 && typeof value == "number" ) {
-		return this.coefficient * Math.pow(value,this.power);
-	}else if(this.power.length == 1 && isnomial) {
-		return value.exponentiate(this.power[0]).multiply(this.coefficient);
-	}else{
-		if(isnomial) {
-			throw new Error("Tuple expected.");
-		}
-		var result;
-		var coefficient = this.coefficient;
-		var remainingvars = {};
-		for(var v in this.variable) {
-			remainingvars[v] = 0;
-		}
-		for(var v in value) {
-			if(this.variable.hasOwnProperty(v))
-			{
-				if(typeof value[v] === "number") {
-					coefficient *= Math.pow(value[v],this.power[this.variable[v]]);
-				}else{
-					if(result) {
-
-						result = result.multiply(value[v].exponentiate(this.power[this.variable[v]]));
-					}else{
-						result = value[v].exponentiate(this.power[this.variable[v]]);
-					}
+			for(var v in this.variable) {
+				if(this.power[this.variable[v]] != that.power[that.variable[v]]) {
+					matching = false;
 				}
 			}
+		}
+		return matching;
+	},
+
+	/**
+		Returns the additive invese of the term
+		@return {Term}  
+	**/
+	neg: function() {
+		return new SM.Term(0-this.coefficient,this.power,this.variable);
+	},
+
+
+	/**
+		Adds a term,polynomial, or constant to an existing term
+		@param {Term|Polynomial|double} summand The summad being added to the term
+		@return {Term|Polynomial} The result of the summation
+
+	**/
+	add: function(summand) {
+		if(summand instanceof SM.Term)
+		{
+			if(this.isMatchingVariables(summand) )
+			{
+				if(this.isMatchingPowers(summand) )
+				{
+					var sumofterms = new SM.Term(this.coefficient + summand.coefficient,this.power,this.variable);
+					return sumofterms;
+					
+				}else{
+					
+					return new SM.Polynomial([this,summand]);
+				}
+			}else{
+				
+				return new SM.Polynomial([this,summand]);
+			}
+		}else if(summand instanceof SM.Polynomial) {
+			return summand.add(this);
+		}else if(typeof summand === "number") {
+			for(var k in this.variable) {
+				break;
+			}
+			var constant = new SM.Term(summand,0,k);
+			var newpoly = new SM.Polynomial([this,constant]);
+			return newpoly; 
+		}
+	},
+
+	/**
+		Subtract a term, or constant from an existing term
+		@param {Term|double} summand The summand being subtract from the term
+		@return {Term|Polynomial} The result of the summation
+	**/
+	subtract: function(summand) {
+		if(summand instanceof SM.Term)
+		{
+			return this.add(summand.neg());
+		}else if(summand instanceof SM.Polynomial) {
+			var newpoly = summand.terms.slice();
+			for(var i=0; i< newpoly.length; i++) {
+				newpoly[i] = newpoly[i].neg();
+			}
+			var difference = new SM.Polynomial(newpoly);
+			return difference.add(this);
+		}else if(typeof summand === "number") {
+			var constant = new SM.Term(0-summand,0,'x');
+			return new SM.Polynomial([this,constant]);
+		}
+	},
+
+	/**
+		Multiply a term, Polynomial, or constant to an existing term
+		@param {Term|Polynomial|double} multiplicand The multiplicand in the product
+		@return {Term|Polynomial} The product
+	**/
+	multiply: function(multiplicand) {
+		var newcoef;
+		var newpowers = [];
+		var newvars = {};
+		if(multiplicand instanceof SM.Term)
+		{
+			newcoef = this.coefficient*multiplicand.coefficient;
+			var varcount = 0;
+			for(var v in this.variable) {
+				//if(newvars[v] == undefined) {
+					newvars[v] = varcount;
+					newpowers[varcount] = this.power[this.variable[v]];
+					varcount++;
+				//}
+			}
+			for(var v in multiplicand.variable) {
+				if(newvars[v] === undefined) {
+					newvars[v] = varcount;
+					newpowers[varcount] = multiplicand.power[multiplicand.variable[v]];
+					varcount++;
+				}else{
+					newpowers[newvars[v]] += multiplicand.power[multiplicand.variable[v]];
+				}
+			}
+					
 			
-			delete remainingvars[v];
+		}else if(multiplicand instanceof SM.Polynomial) {
+			return multiplicand.multiply(this);
+		}else if(typeof multiplicand === "number") {
+			
+				newcoef = this.coefficient*multiplicand;
+				newvars = this.variable;
+				newpowers = this.power.slice();
 		}
-		var varsleft = false;
-		var remainingpowers = [];
-		var rpcount = 0;
-		for(var v in remainingvars) {
-			varsleft = true;
-			remainingpowers[rpcount] = this.power[this.variable[v]];
-			remainingvars[v] = rpcount;
-			rpcount++;
-		}
-		if(varsleft) {
-			if(result) {	
-				return result.multiply(new Term(coefficient,remainingpowers,remainingvars));
-			}else{
-				return new Term(coefficient,remainingpowers,remainingvars);
+		var tempterm = new SM.Term(newcoef,newpowers,newvars);
+		return tempterm;
+	},
+
+	/**
+		Divide a term by another term or a constant
+		@param {Term|double} denominator The denominator of the divisor 
+		@return {Term|Polynomial} The quotient 
+	**/
+	divide: function(denominator) {
+		if(denominator instanceof SM.Term)
+		{
+			var newcoef = this.coefficient/denominator.coefficient;
+			var newpowers = [];
+			var newvars = {};
+			var varcount = 0;
+			for(var v in this.variable) {
+				//if(newvars[v] == undefined) {
+					newvars[v] = varcount;
+					newpowers[varcount] = this.power[this.variable[v]];
+					varcount++;
+				//}
 			}
+			for(var v in denominator.variable) {
+				if(newvars[v] === undefined) {
+					newvars[v] = varcount;
+					newpowers[varcount] = 0-denominator.power[denominator.variable[v]];
+					varcount++;
+				}else{
+					newpowers[newvars[v]] -= denominator.power[denominator.variable[v]];
+				}
+			}
+			var tempterm = new SM.Term(newcoef,newpowers,newvars);
+			return tempterm;
+		}else if(typeof denominator === "number") {
+			
+				var tempterm = new SM.Term(this.coefficient/denominator,this.power,this.variable);
+				return tempterm;
+		}
+	},
+
+	/**
+		Produce powers of a Term 
+		@param {Integer} exponent the power to be raised by
+		@return {Term} the power of the input
+	**/
+	exponentiate: function(exponent) {
+		var newpowers = [];
+		for(var i =0; i < this.power.length; i++ ) {
+			newpowers[i] = this.power[i]*exponent;
+		}
+		return new SM.Term(Math.pow(this.coefficient,exponent),newpowers,this.variable);
+
+	},
+
+	/**
+		Generates a pretty printed version of the term.
+		@return {String} Returns a string version of the term
+	**/
+	toString: function () { 
+		var retstring ="";
+		if(this.coefficient === 0)
+		{
+			return "";
+		}else if(this.coefficient === -1) {
+			retstring += '-';
+		}else if(this.coefficient !== 1) {
+			retstring += this.coefficient;
+		}
+
+		var isconstant = true;
+		for(var i=0; i < this.power.length; i++) {
+			if(this.power[i] !== 0) {
+				isconstant = false;
+			}
+		}
+		if(isconstant) {
+			if(this.coefficient === 1 )
+			{
+				retstring += this.coefficient;
+			} 
+			if(this.coefficient === -1) {
+				retstring += 1;
+			}
+		}
+		var trouble; //hackery here to remove extraneous *'s from the toString
+		for(var v in this.variable) {
+			trouble = false;
+			var thepower = this.power[this.variable[v]]; 
+			if(thepower !== 0) 
+			{
+				if(thepower === 1)
+				{
+
+					//retstring += this.variable
+					retstring += v; 
+				}else{
+					retstring += v; 
+					retstring +="^"+thepower+"*";
+					trouble = true;
+				}
+			}
+		}
+		if(trouble) {
+			retstring = retstring.slice(0,-1);
+		}
+		return retstring;
+		
+	},
+
+	/**
+		Generate a formated string representing a term.
+		@return {String} Return the term in formatted string
+	**/
+	serialize: function() {
+		var retstring =""+this.coefficient;
+		for(var v in this.variable) {
+			retstring += ""+v+"^"+this.power[this.variable[v]];
+		}
+		return retstring; 
+	},
+
+	/**
+		@param {double|Object} value Evaluate the term for the value
+		@return {double|Term} The result of the function
+	**/
+	resolve: function(value) {
+		var isnomial = value instanceof SM.Term || value instanceof SM.Polynomial;
+		if(this.power.length == 1 && typeof value == "number" ) {
+			return this.coefficient * Math.pow(value,this.power);
+		}else if(this.power.length == 1 && isnomial) {
+			return value.exponentiate(this.power[0]).multiply(this.coefficient);
 		}else{
-			if(result) {
-				return result.multiply(coefficient);
+			if(isnomial) {
+				throw new Error("Tuple expected.");
+			}
+			var result;
+			var coefficient = this.coefficient;
+			var remainingvars = {};
+			for(var v in this.variable) {
+				remainingvars[v] = 0;
+			}
+			for(var v in value) {
+				if(this.variable.hasOwnProperty(v))
+				{
+					if(typeof value[v] === "number") {
+						coefficient *= Math.pow(value[v],this.power[this.variable[v]]);
+					}else{
+						if(result) {
+
+							result = result.multiply(value[v].exponentiate(this.power[this.variable[v]]));
+						}else{
+							result = value[v].exponentiate(this.power[this.variable[v]]);
+						}
+					}
+				}
+				
+				delete remainingvars[v];
+			}
+			var varsleft = false;
+			var remainingpowers = [];
+			var rpcount = 0;
+			for(var v in remainingvars) {
+				varsleft = true;
+				remainingpowers[rpcount] = this.power[this.variable[v]];
+				remainingvars[v] = rpcount;
+				rpcount++;
+			}
+			if(varsleft) {
+				if(result) {	
+					return result.multiply(new SM.Term(coefficient,remainingpowers,remainingvars));
+				}else{
+					return new SM.Term(coefficient,remainingpowers,remainingvars);
+				}
 			}else{
-				return coefficient;
+				if(result) {
+					return result.multiply(coefficient);
+				}else{
+					return coefficient;
+				}
 			}
 		}
+	},
+
+	/**
+		This is an alternate constructor to initialize Term objects.
+		This is meant to be used in conjunction witht the serialize() method
+		@deprecated
+		@param {String} sterm A string of the form ax^b where a,b are floats, and x is any variable 
+	**/
+	initTerm: function(sterm) {
+		var termRe = /([-]*\d*(\.\d*)*)([a-zA-Z]+)\^([-]*\d+(\.\d*)*)+/;
+		var termValues = termRe.exec(sterm);
+
+		this.coefficient = parseFloat(termValues[1]);
+		this.power = parseFloat(termValues[4]);
+		this.variable = termValues[3];
+		//returnv 
+	},
+
+	/**
+		Returns the monomial's degree
+	**/	
+	degree: function() {
+		var degree = 0;
+		for(var i =0; i < this.power.length; i++) {
+			degree += this.power[i];
+		}
+		return degree;
 	}
-};
-
-/**
-	This is an alternate constructor to initialize Term objects.
-	This is meant to be used in conjunction witht the serialize() method
-	@deprecated
-	@param {String} sterm A string of the form ax^b where a,b are floats, and x is any variable 
-**/
-Term.prototype.initTerm = function(sterm) {
-	var termRe = /([-]*\d*(\.\d*)*)([a-zA-Z]+)\^([-]*\d+(\.\d*)*)+/;
-	var termValues = termRe.exec(sterm);
-
-	this.coefficient = parseFloat(termValues[1]);
-	this.power = parseFloat(termValues[4]);
-	this.variable = termValues[3];
-	//returnv 
-};
-
-/**
-	Returns the monomial's degree
-**/	
-Term.prototype.degree = function() {
-	var degree = 0;
-	for(var i =0; i < this.power.length; i++) {
-		degree += this.power[i];
-	}
-	return degree;
 }
-
 
 /**
 	A point object representing a point in a 2-d plane
@@ -455,17 +461,36 @@ Term.prototype.degree = function() {
 	@param {Number} x The x value
 	@param {Number} y The y value
 **/
-function Point(x,y)
+SM.Point = function(x,y)
 {
 		this.x = parseFloat(x);
 		this.y = parseFloat(y);
+}
+
+
+/**
+	Helper method to sort point objects
+	@static
+	@param {Point} a The first point to compare
+	@param {Point} b The second point to compare
+	@return {integer} The comparison of the points
+**/
+SM.Point.sorter = function(a,b) {
+	if(a.x < b.x) {
+		return -1;
+	}else if(a.x > b.x) {
+		return 1;
+	}else{
+		return 0;
+	}
+
 }
 
 /**
 	A method to convert a Point to a String
 	@return {String} The point value in parens
 **/
-Point.prototype.toString = function()
+SM.Point.prototype.toString = function()
 {
 		return "("+this.x+","+this.y+")";	
 };
@@ -477,7 +502,7 @@ Point.prototype.toString = function()
 	@param {Number} b The upper bound
 	@param {Number} n The power of 2 used to partition the range  
 **/
-function RombergExtrapolation(fofx, a,b,n)
+SM.RombergExtrapolation = function(fofx, a,b,n)
 {
 	var h = b-a;
 	var r = new Array(n+1);
@@ -513,7 +538,7 @@ function RombergExtrapolation(fofx, a,b,n)
 	@param {Number} b The upper bound
 	@param {Number} n The number of divisions used to partition the range  
 **/
-function TrapezoidRule(fofx, a, b, n)
+SM.TrapezoidRule = function(fofx, a, b, n)
 {
 	var x;
 	var h = (b-a)/n;
@@ -534,7 +559,7 @@ function TrapezoidRule(fofx, a, b, n)
 	@param {Number} a The lower bound
 	@param {Number} b The upper bound
 **/
-function basicSimpsonsrule(fofx,a,b)
+SM.basicSimpsonsrule = function(fofx,a,b)
 {
 	var h=(b-a)/6;
 	var sum =h*(fofx.resolve(a)+4*fofx.resolve((a+b)/2)+fofx.resolve(b));
@@ -543,7 +568,7 @@ function basicSimpsonsrule(fofx,a,b)
 }
 
 
-function bisection(fofx, a, b, depthmax, epsilon) 
+SM.bisection = function(fofx, a, b, depthmax, epsilon) 
 {
 	var left = fofx.resolve(a);
 	var right = fofx.resolve(b);

@@ -48,15 +48,10 @@ function findPosition(obj)
 	}
 	return {"leftOffset":curleft,"topOffset":curtop};
 }
-var test = new Term(2,1,'x');
-var test2 = new Term(3,1,'x');
-var test3 = new Term(4,2,'x');
-var test4 = new Term(5,0,'x');
-var ptest = new Polynomial([test,test2,test3,test4]);
 
 
 var canvas;
-var ourGraph = new graph(-10,10,-10,10,0,[],[]);
+var ourGraph = new SM.Graph(-10,10,-10,10,0,[],[]);
 var rdb;
 var datasets = {}; 
 
@@ -68,7 +63,7 @@ function buttonAddPoint() {
 	var newpoint = prompt("Enter a new point. Ex. (1,2)","");
 	var pointRe = /([-]*\d*(\.\d*)*),([-]*\d*(\.\d*)*)/;
 	var pointValues = pointRe.exec(newpoint);
-	var temp = new Point(pointValues[1],pointValues[3]);
+	var temp = new SM.Point(pointValues[1],pointValues[3]);
 	ourGraph.addPoint(temp);
 }
 
@@ -87,7 +82,7 @@ function clickAdd(mevent) {
    
    x = ourGraph.xlow+x/ourGraph.xpu();
    y = ourGraph.ylow+(canvas.height-y)/ourGraph.ypu();
-   ourGraph.addPoint(new Point(x,y));
+   ourGraph.addPoint(new SM.Point(x,y));
 
 }
 
@@ -159,9 +154,9 @@ $(document).ready(function() {
 	rdb = new RESTDB(new IndexedDBAdapter("NumericData"));
 	rdb.adapterSetup(function() {
 		var classify ={}; 
-		classify[Term.serializeName] = Term.fromWebWorker;
-		classify[Polynomial.serializeName] = Polynomial.fromWebWorker;
-		classify[PiecewiseFunction.serializeName] = PiecewiseFunction.fromWebWorker;
+		classify[SM.Term.serializeName] = SM.Term.fromWebWorker;
+		classify[SM.Polynomial.serializeName] = SM.Polynomial.fromWebWorker;
+		classify[SM.PiecewiseFunction.serializeName] = SM.PiecewiseFunction.fromWebWorker;
 
 		rdb.get("FunctionSets",null,function(x) {
 			x.funcs.forEach(function(y) {
@@ -172,7 +167,7 @@ $(document).ready(function() {
 		});
 
 		rdb.get("PointSets",null,function(x) {
-			x.points.forEach(function(p){ reattachMethods(p,Point);});
+			x.points.forEach(function(p){ SM.reattachMethods(p,SM.Point);});
 			datasets[x.name] = x;
 			$("#s_datasets").append('<option value="'+x.name+'">'+x.name+'</option>');
 		});
@@ -188,7 +183,7 @@ $(document).ready(function() {
 		{
 			savename += ".svg";
 		}
-		var svgmaker = new SVG(ourGraph);
+		var svgmaker = new SM.SVG(ourGraph);
 		saveAs(new Blob([svgmaker.toXML()]),savename);
 	});
 
@@ -294,7 +289,7 @@ $(document).ready(function() {
 <input type="radio" name="f_radio" id="spl2" value="spline2"/><label for="spl2">2nd Degree Spline</label><br>
 <input type="radio" name="f_radio" id="spl3" value="spline3"/><label for="spl3">Natural Cubic Spline</label><br>
 <input type="radio" name="f_radio" id="ls1" value="lslinear"/><label for="lslinear">Linear Least Square</label><br>
-<input type="radio" name="f_radio" id="ls2" value="lsquadratic"/><label for="lsquadratic">Quadtratic Least Square</label>
+<input type="radio" name="f_radio" id="ls2" value="lsquadratic"/><label for="lsquadratic">Quadratic Least Square</label>
 </fieldset>
 <input type="checkbox" name="f_imm" id="f_imm" checked="true"><label for="f_imm">Immediate Mode</label>
 <button id="b_genfunc" value="" disabled="true">Generate Function</button> 
