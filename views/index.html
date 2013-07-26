@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html lang="{{ 'lang_string'}}">
+<html>
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="UTF-8">
 <!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>-->
 <script src="js/jquery-1.7.2.min.js"></script>
 <script type="text/javascript" src="js/grapher.js"></script>
@@ -238,10 +238,10 @@ $(document).ready(function() {
  </style>
 </head>
 <body bgcolor="#3f8295">
-<h1>Numeric Interpolation Demo by Aaron R Elligsen (A work in progress)</h1>
-<a href="tests/test.html">To Unit Tests</a>
-<a href="docs/">To Documentation</a>
-<a href="https://github.com/hath995/grapher">To Github</a>
+<h1>{{ I18n "title"}} (A work in progress)</h1>
+<a href="tests/test.html">{{I18n "tests"}}</a>
+<a href="docs/">{{I18n "docs"}}</a>
+<a href="https://github.com/hath995/grapher">{{I18n "github"}}</a>
 <table>
 <tr>
 <td>
@@ -249,60 +249,60 @@ $(document).ready(function() {
 </canvas>
 </td>
 <td>
-<p><b>Ranges may be entered like so: x1,x2 or [x1,x2]</b><br>Points can also be added by clicking on the graph</p>
-<label for="x_range"><b>X-Range: </b></label>
+<p><b>{{I18n "enterrange"}}</b><br>{{I18n "pointexp"}}</p>
+<label for="x_range"><b>{{I18n "xrange" }} </b></label>
 <input type="text" id="x_range" placeholder="[-10,10]">
 
 <br>
-<label for="y_range"><b>Y-Range: </b></label>
+<label for="y_range"><b>{{I18n "yrange"}} </b></label>
 <input type="text" id="y_range" placeholder="[-10,10]">
 
 <br>
 <br>
 <!--<label for="s_equation">Equation </label>
 <input type="text" id="s_equation">-->
-<input type="text" placeholder="graph.svg" id="t_savename"><button id="b_savesvg">Save as SVG</button> 
+<input type="text" placeholder="graph.svg" id="t_savename"><button id="b_savesvg">{{I18n "savesvg"}}</button> 
 <br>
 <select size="10" style="width: 300px"id="s_points">
 </select>
 <br>
-<button id="b_add" value="">Add Point</button>
-<button id="b_remove" value="">Remove Point</button>
-<button id="b_removeall" value="">Remove All Points</button>
-<button id="b_savepts" value="">Save Points</button>
+<button id="b_add" value="">{{I18n "addpoint"}}</button>
+<button id="b_remove" value="">{{I18n "rempoint"}}</button>
+<button id="b_removeall" value="">{{I18n "remallpoint"}}</button>
+<button id="b_savepts" value="">{{I18n "savepoint"}}</button>
 <br>
 
 <select id="s_functionlist" size="10" style="width: 325px;">
 </select>
 <br>
-<button id="b_savefunc">Save Functions</button>
-<button id="b_removefunc" value="">Remove Function</button>
-<button id="b_removeallfunc" value="">Remove All Functions</button>
+<button id="b_savefunc">{{I18n "savefunct"}}</button>
+<button id="b_removefunc" value="">{{I18n "remfunct"}}</button>
+<button id="b_removeallfunc" value="">{{I18n "remallfunct"}}</button>
 <br><br>
-<button id="b_clear" value="">Clear All</button>
+<button id="b_clear" value="">{{I18n "clearall"}}</button>
 
 </td>
 <td><fieldset id="f_type">
-<legend>Function Type</legend>
-<input checked="true" type="radio" name="f_radio" id="poly" value="poly"/><label for="poly">Polynomial Interpolation</label><br>
-<input type="radio" name="f_radio" id="spl1" value="spline1"/><label for="spl1">1st Degree Spline</label><br>
-<input type="radio" name="f_radio" id="spl2" value="spline2"/><label for="spl2">2nd Degree Spline</label><br>
-<input type="radio" name="f_radio" id="spl3" value="spline3"/><label for="spl3">Natural Cubic Spline</label><br>
-<input type="radio" name="f_radio" id="ls1" value="lslinear"/><label for="lslinear">Linear Least Square</label><br>
-<input type="radio" name="f_radio" id="ls2" value="lsquadratic"/><label for="lsquadratic">Quadratic Least Square</label>
+<legend>{{I18n "functiontype"}}</legend>
+<input checked="true" type="radio" name="f_radio" id="poly" value="poly"/><label for="poly">{{I18n "polyinterp"}}</label><br>
+<input type="radio" name="f_radio" id="spl1" value="spline1"/><label for="spl1">{{I18n "linearspl"}}</label><br>
+<input type="radio" name="f_radio" id="spl2" value="spline2"/><label for="spl2">{{I18n "quadspl"}}</label><br>
+<input type="radio" name="f_radio" id="spl3" value="spline3"/><label for="spl3">{{I18n "cubicspl"}}</label><br>
+<input type="radio" name="f_radio" id="ls1" value="lslinear"/><label for="lslinear">{{I18n "linleastsq"}}</label><br>
+<input type="radio" name="f_radio" id="ls2" value="lsquadratic"/><label for="lsquadratic">{{I18n "quadleastsq"}}</label>
 </fieldset>
-<input type="checkbox" name="f_imm" id="f_imm" checked="true"><label for="f_imm">Immediate Mode</label>
-<button id="b_genfunc" value="" disabled="true">Generate Function</button> 
+<input type="checkbox" name="f_imm" id="f_imm" checked="true"><label for="f_imm">{{I18n "immode"}}</label>
+<button id="b_genfunc" value="" disabled="true">{{I18n "genfunct"}}</button> 
 </td>
 </tr>
 </table>
 <fieldset id="f_equation">
-<legend>Selected Equation</legend>
+<legend>{{I18n "selectedfunct"}}</legend>
 </fieldset>
 <div id="savefuncs">
 	<div id="data">
 		<select id="s_datasets" style="width:300;"></select>
-		<button id="b_loaddata">Load Data</select>
+		<button id="b_loaddata">{{I18n "loaddata"}}</select>
 	</div>
 </div>
 </div>

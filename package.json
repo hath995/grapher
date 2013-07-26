@@ -31,6 +31,13 @@
     "grunt-contrib-jshint": "~0.6.0",
     "grunt-contrib-uglify": "~0.2.2",
     "grunt-contrib-copy": "~0.4.1",
-    "jsdoc": "~3.2.0"
+    "jsdoc2": "~1"
+  },
+  "dependencies": {
+    "express": "~3.3.4",
+    "consolidate": "~0.9.1",
+    "handlebars": "~1",
+    "i18n-2": "~0.4.5",
+    "connect-mongo": "~0.3.3"
   }
 }
