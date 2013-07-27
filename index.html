@@ -65,6 +65,14 @@ function buttonAddPoint() {
 	var pointValues = pointRe.exec(newpoint);
 	var temp = new SM.Point(pointValues[1],pointValues[3]);
 	ourGraph.addPoint(temp);
+	$("#s_points").append('<option>'+temp+'</option>');
+	if(ourGraph.immediate) {
+		var newpoly = ourGraph.generateFunction();	
+		if(newpoly) {
+			$("#s_functionlist").append('<option>'+newpoly+'</option>');
+			ourGraph.drawLatest();	
+		}
+	}
 }
 
 /**
@@ -82,7 +90,16 @@ function clickAdd(mevent) {
    
    x = ourGraph.xlow+x/ourGraph.xpu();
    y = ourGraph.ylow+(canvas.height-y)/ourGraph.ypu();
-   ourGraph.addPoint(new SM.Point(x,y));
+   var temp = new SM.Point(x,y);
+   ourGraph.addPoint(temp);
+   $("#s_points").append('<option>'+temp+'</option>');
+   if(ourGraph.immediate) {
+	var newpoly = ourGraph.generateFunction();	
+	if(newpoly) {
+		$("#s_functionlist").append('<option>'+newpoly+'</option>');
+		ourGraph.drawLatest();	
+	}
+   }
 
 }
 
@@ -100,10 +117,12 @@ $(document).ready(function() {
 	$("#b_remove").click(function() {
 		var p = $("#s_points").val();
 		ourGraph.removePoint(p);
+		$("#s_points :selected").remove();
 	});
 
 	$("#b_removeall").click(function() {
 		ourGraph.removeAllPoints();
+		$("#s_points").empty();
 	});
 
 	$("#x_range").change(function() {
@@ -119,6 +138,7 @@ $(document).ready(function() {
 	$("#b_removefunc").click(function() {
 		var f = $("#s_functionlist").val();
 		ourGraph.removeFunction(f);
+		$("#s_functionlist :selected").remove();
 					
 	});
 
@@ -127,11 +147,14 @@ $(document).ready(function() {
 	});
 
 	$("#b_removeallfunc").click(function() {
+		$("#s_functionlist").empty();
 		ourGraph.removeAllFunctions();			
 	});
 
 	$("#b_clear").click(function() {
 		
+		$("#s_functionlist").empty();
+		$("#s_points").empty();
 		ourGraph.clear();
 	});
 
@@ -147,7 +170,8 @@ $(document).ready(function() {
 	});
 
 	$("#b_genfunc").click(function() {
-		ourGraph.generateFunction();
+		var newpoly = ourGraph.generateFunction();
+		$("#s_functionlist").append('<option>'+newpoly+'</option>');
 		ourGraph.drawLatest();	
 	});
 

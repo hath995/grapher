@@ -151,10 +151,7 @@ SM.Graph.prototype = {
 		}
 		$("#x_range").val(this.xlow+","+this.xhigh);
 		$("#y_range").val(this.ylow+","+this.yhigh);
-		$("#s_points").append('<option>'+newpoint+'</option>');
-		if(this.immediate) {
-			this.generateFunction();	
-		}
+		
 
 		if(redrawrequired) {
 			this.redraw();
@@ -174,7 +171,7 @@ SM.Graph.prototype = {
 			var newpoly = this.datamethods[this.currentinterpolator](this.points);		
 			newpoly.color = this.pickColor(); 
 			this.functions.push(newpoly);
-			$("#s_functionlist").append('<option>'+newpoly+'</option>');
+			return newpoly;
 		}
 	},
 
@@ -437,7 +434,6 @@ SM.Graph.prototype = {
 			}
 
 		}
-		$("#s_points :selected").remove();
 		this.redraw();
 
 	},
@@ -448,7 +444,6 @@ SM.Graph.prototype = {
 	removeAllPoints: function()
 	{
 		this.points = [];
-		$("#s_points").empty();
 		this.redraw();
 	},
 
@@ -466,7 +461,6 @@ SM.Graph.prototype = {
 			}
 
 		}
-		$("#s_functionlist :selected").remove();
 		this.redraw();
 
 	},
@@ -477,7 +471,6 @@ SM.Graph.prototype = {
 	removeAllFunctions: function()
 	{
 		this.functions = [];
-		$("#s_functionlist").empty();
 		this.redraw();
 	},
 
@@ -487,9 +480,7 @@ SM.Graph.prototype = {
 	clear: function()
 	{
 			this.functions = [];
-			$("#s_functionlist").empty();
 			this.points = [];
-			$("#s_points").empty();
 			this.redraw();
 	},
 
@@ -539,12 +530,4 @@ SM.Graph.prototype = {
 		return fncolor;
 	}
 }
-/*
-var newresult = [];
-for(var i=0; i < result.length; i++) {
-	    var newps = [];
-	        for(var k=0; k < result[i].length; k++) {
-			        newps.push(ourGraph.pointToPixel(result[i][k]));
-				        }
-					    }
-*/
+
