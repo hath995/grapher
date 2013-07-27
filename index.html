@@ -86,11 +86,8 @@ function clickAdd(mevent) {
    var canvaslocation = findPosition(this);
    x -= canvaslocation.leftOffset;
    y -= canvaslocation.topOffset;
-   //console.log("offsets: "+canvaslocation.leftOffset+","+canvaslocation.topOffset);
    
-   x = ourGraph.xlow+x/ourGraph.xpu();
-   y = ourGraph.ylow+(canvas.height-y)/ourGraph.ypu();
-   var temp = new SM.Point(x,y);
+   var temp = ourGraph.pixelToPoint(new SM.Point(x,y));
    ourGraph.addPoint(temp);
    $("#s_points").append('<option>'+temp+'</option>');
    if(ourGraph.immediate) {

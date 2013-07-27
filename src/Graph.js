@@ -27,12 +27,12 @@ SM.Graph = function (xlow,xhigh, ylow,yhigh,counter,points,functions) {
 	this.points =points;
 	this.functions = functions;
 	var lsq = function(points) {
-		var linear = [new Term(1,0,'x'),new Term(1,1,'x')];
+		var linear = [new SM.Term(1,0,'x'),new SM.Term(1,1,'x')];
 		return SM.Polynomial.prototype.leastSquare(points,linear);
 	}
 
 	var qsq = function(points) {
-		var quadratic =[new Term(1,0,'x'),new Term(1,1,'x'),new Term(1,2,'x')];
+		var quadratic =[new SM.Term(1,0,'x'),new SM.Term(1,1,'x'),new SM.Term(1,2,'x')];
 		return SM.Polynomial.prototype.leastSquare(points,quadratic);
 	}
 	this.datamethods = [SM.Polynomial.prototype.LagrangeInterpolation,SM.PiecewiseFunction.createFirstDegSpline,SM.PiecewiseFunction.createSecondDegSpline,SM.PiecewiseFunction.createThirdDegSpline,lsq,qsq]
@@ -182,13 +182,10 @@ SM.Graph.prototype = {
 	{
 	   var c = canvas.getContext('2d');
 	   c.fillStyle = "red";
-	   var xpu = this.xpu();
-	   var ypu = this.ypu();
 
 	   for (var i = 0; i < this.points.length; i++) {
-		var pixelx =(this.points[i].x-this.xlow) * xpu ;
-		var pixely =canvas.height -(this.points[i].y-this.ylow)* ypu;
-		c.fillRect(pixelx-2,pixely-2,5,5);
+		var pixel = this.pointToPixel(this.points[i]);
+		c.fillRect(pixel.x-2,pixel.y-2,5,5);
 	   }
 	},
 
@@ -342,21 +339,9 @@ SM.Graph.prototype = {
 			}
 		}
 		//console.log(plist);
-		plist.sort(function(a,b) {
-			if(a.x > b.x)
-			{
-				return 1;
-			}
-			if(a.x < b.x)
-			{
-				return -1;
-			}		
-			return 0;
-		});
+		plist.sort(SM.Point.sorter);
 
 		//console.log(plist);
-		var xpu = this.xpu();
-		var ypu = this.ypu(); 
 		var c = canvas.getContext('2d');
 		c.beginPath();
 		if(!interpolated.color) {
@@ -364,17 +349,12 @@ SM.Graph.prototype = {
 		}
 		c.strokeStyle=interpolated.color;
 		c.lineWidth = 2;
-		var pixelx =(plist[0].x-this.xlow) * xpu ;
-		var pixely =canvas.height -(plist[0].y-this.ylow)* ypu;
-		c.moveTo(pixelx,pixely);
+		var pixel = this.pointToPixel(plist[0]);
+		c.moveTo(pixel.x,pixel.y);
 		for(var i=1; i < plist.length; i++)
 		{
-			var oldx = pixelx;
-			var oldy = pixely;
-			pixelx =(plist[i].x-this.xlow) * xpu ;
-			pixely =canvas.height -(plist[i].y-this.ylow)* ypu;
-			c.lineTo(pixelx,pixely) ;	
-			//c.bezierCurveTo(oldx,pixely,pixelx,oldy,pixelx,pixely);
+			pixel = this.pointToPixel(plist[i]);
+			c.lineTo(pixel.x,pixel.y) ;	
 			c.stroke();
 		}
 	},
@@ -384,20 +364,8 @@ SM.Graph.prototype = {
 		@param {Point[]} points The points to be plotted and connected;
 	**/
 	plotAndConnectPoints: function(points) {
-		points.points.sort(function(a,b) {
-			if(a.x > b.x)
-			{
-				return 1;
-			}
-			if(a.x < b.x)
-			{
-				return -1;
-			}		
-			return 0;
-		});
+		points.points.sort(SM.Point.sorter);
 
-		var xpu = this.xpu();
-		var ypu = this.ypu(); 
 		var c = canvas.getContext('2d');
 		c.beginPath();
 		if(!points.color) {
@@ -406,16 +374,12 @@ SM.Graph.prototype = {
 			c.strokeStyle=points.color;
 		}
 		c.lineWidth = 2;
-		var pixelx =(points.points[0].x-this.xlow) * xpu ;
-		var pixely =canvas.height -(points.points[0].y-this.ylow)* ypu;
-		c.moveTo(pixelx,pixely);
+		var pixel = this.pointToPixel(points.points[0]);
+		c.moveTo(pixel.x,pixel.y);
 		for(var i=1; i < points.points.length; i++)
 		{
-			var oldx = pixelx;
-			var oldy = pixely;
-			pixelx =(points.points[i].x-this.xlow) * xpu ;
-			pixely =canvas.height -(points.points[i].y-this.ylow)* ypu;
-			c.lineTo(pixelx,pixely) ;	
+			var pixel = this.pointToPixel(points.points[i]);
+			c.lineTo(pixel.x,pixel.y);	
 			c.stroke();
 		}
 	},
@@ -515,13 +479,31 @@ SM.Graph.prototype = {
 		return new SM.Point(pixelx,pixely);
 	},
 
+	/**
+		Convert point in pixel space to point in unit space
+		@param {Point} point the point to be translated
+		@return {Point} The point in unit space
+	**/
+	pixelToPoint: function(point) {
+	   var x = this.xlow+point.x/this.xpu();
+	   var y = this.ylow+(canvas.height-point.y)/this.ypu();
+	   return new SM.Point(x,y);
+	},
+
+	/**
+		Add a function to the Graphs internal function list
+		@param {Resolveable} fn The function to be added to the graph
+	**/
 	addFunction: function(fn) {
 		fn.color = this.pickColor(); 
 		this.functions.push(fn);
 
 	},
 
-
+	/**
+		Pick a color for a new function to be assigned
+		@return {String} HTML color name
+	**/
 	pickColor: function() {
 		
 		var COLOR = ['Blue','LimeGreen','Gold','Sienna','DarkRed','LightSlateGray','Purple','Black'];
