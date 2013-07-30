@@ -1,5 +1,5 @@
 {
-	"title": "Numeric Interpolation Demo by Aaron R Elligsen (A work in progress)",
+	"title": "Numeric Interpolation Demo by Aaron R Elligsen ",
 	"tests": "To Unit Tests",
 	"docs": "To Documentation",
 	"github": "To Github",
@@ -27,5 +27,7 @@
 	"selectedfunct": "Selected Equation",
 	"loaddata": "Load Data",
 	"documentation": "documentation",
-	"savefunct": "savefunct"
+	"savefunct": "savefunct",
+	"japanese":"日本語",
+	"english":"English"
 }

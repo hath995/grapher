@@ -26,5 +26,7 @@
 	"immode": "即時モード",
 	"genfunct": "関数作る",
 	"selectedfunct": "選択式",
-	"loaddata":"負荷データ"
+	"loaddata":"負荷データ",
+	"japanese":"日本語",
+	"english":"English"
 }

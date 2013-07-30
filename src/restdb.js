@@ -1,5 +1,13 @@
 
-function RESTDB(adapter) {
+/**
+	An abstraction layer representing a rest styled database
+	@constructor
+	@class
+	@param {RESTDBAdapter} adapter
+**/
+var SDB = SDB || {}; //Simple DB
+
+SDB.RESTDB = function(adapter) {
 	this.database = adapter;
 	this.adapterSetup = function(callback) {
 		this.database.adapterSetup(callback);
@@ -24,26 +32,28 @@ function RESTDB(adapter) {
 }
 
 /**
+	Represents database index
 	@constructor
 	@class
 	@param {string} name The name of the index
 	@param {boolean} unique Set whether index accepts duplicate key values
 	@param {boolean} multipleEntries Set whether index creates multiple records for indexed key
 **/
-function Index(name,unique, multipleEntries) {
+SDB.Index = function(name,unique, multipleEntries) {
 	this.name = name;
 	this.unique = unique || false;
 	this.multipleEntries = multipleEntries || false;
 }
 
 /**
+	Represents a table or bin or datastore. Essentially any database subsection
 	@constructor
 	@class
 	@param {string} name The name of the data bucket
 	@param {string} key The name of the data primary key (Optional);
 	@param {Index[]} indices Array of index objects
 **/
-function Bucket(name, key, indices) {
+SDB.Bucket = function(name, key, indices) {
 	this.name = name;
 	this.key = key;
 	this.indices = (function(indexes) {
@@ -55,10 +65,17 @@ function Bucket(name, key, indices) {
 	})(indices);
 }
 
-function IndexedDBAdapter(databasename) {
+/**
+	A wrapper over the IndexedDB API to simplify data access to a REST styled interface.
+	@constructor
+	@class
+	@param {string} databasename The name of the database to be worked with 
+**/
+SDB.IndexedDBAdapter = function(databasename,version) {
 	this.dbname = databasename;
 	this.db = null;
 	this.buckets = {};
+	this.version = version || undefined;
 	this.addBucket = function(bucket) {
 		this.buckets[bucket.name] = bucket;	
 	};
