@@ -17,7 +17,8 @@
 	@param {double} points The array of points added.
 	@param {double} functions The array of functions added/formed.
 **/
-SM.Graph = function (xlow,xhigh, ylow,yhigh,counter,points,functions) {
+SM.Graph = function (canvas,xlow,xhigh, ylow,yhigh,counter,points,functions) {
+	this.canvas = canvas;
 	this.xlow = xlow;
 	this.xhigh = xhigh;
 	this.ylow = ylow;
@@ -99,7 +100,7 @@ SM.Graph.prototype = {
 	**/
 	xpu:  function() {
 
-		return canvas.width/(this.xhigh - this.xlow);
+		return this.canvas.width/(this.xhigh - this.xlow);
 	},
 
 
@@ -109,7 +110,7 @@ SM.Graph.prototype = {
 	**/
 	ypu: function() {
 
-		return canvas.height/(this.yhigh - this.ylow);
+		return this.canvas.height/(this.yhigh - this.ylow);
 	},
 
 	/**
@@ -180,7 +181,7 @@ SM.Graph.prototype = {
 	**/
 	drawPoints:  function()
 	{
-	   var c = canvas.getContext('2d');
+	   var c = this.canvas.getContext('2d');
 	   c.fillStyle = "red";
 
 	   for (var i = 0; i < this.points.length; i++) {
@@ -194,7 +195,7 @@ SM.Graph.prototype = {
 	**/
 	drawAxes:  function()
 	{
-		var c = canvas.getContext('2d');
+		var c = this.canvas.getContext('2d');
 		var xsituation =0; 
 		var xpu = this.xpu();
 		var ypu = this.ypu(); 
@@ -204,11 +205,11 @@ SM.Graph.prototype = {
 		c.beginPath();
 		c.lineWidth =1;
 		var xdivision = xpu;
-		while((canvas.width/xdivision) > 32)
+		while((this.canvas.width/xdivision) > 32)
 		{
 			xdivision *=2;
 		}
-		for(var x = 0; x < canvas.width; x += xdivision) {
+		for(var x = 0; x < this.canvas.width; x += xdivision) {
 			var x2 = this.xlow+x/xpu;
 			if(x2.toString().length >5 )
 			{
@@ -216,31 +217,31 @@ SM.Graph.prototype = {
 			}
 
 			c.moveTo(x, 0);
-			c.lineTo(x, canvas.height);
+			c.lineTo(x, this.canvas.height);
 			c.stroke();
 			c.fillStyle = "black";
 			c.font = "bold 10pt Times";
-			c.fillText(x2, x+2, canvas.height - 5);
+			c.fillText(x2, x+2, this.canvas.height - 5);
 		}
 
 
 		// draws horizontal lines on grid
 		var ydivision = ypu;
-		while((canvas.width/ydivision) > 32)
+		while((this.canvas.width/ydivision) > 32)
 		{
 			ydivision *=2;
 		}
 		c.strokeStyle = "#ccc";
 		c.beginPath();
-		for(var y = 0; y < canvas.height; y += ydivision) {
-			var y2 = this.ylow+(canvas.height-y)/ypu;
+		for(var y = 0; y < this.canvas.height; y += ydivision) {
+			var y2 = this.ylow+(this.canvas.height-y)/ypu;
 			if(y2.toString().length > 5)
 			{
 				y2 = y2.toFixed(1);
 			}
 
 			c.moveTo(0, y);
-			c.lineTo(canvas.width, y);
+			c.lineTo(this.canvas.width, y);
 			c.stroke();
 			c.fillStyle = "black";
 			c.font = "bold 10pt Times";
@@ -249,11 +250,11 @@ SM.Graph.prototype = {
 		c.strokeStyle="black";
 		c.beginPath();
 		c.lineWidth =5;
-		c.moveTo(canvas.width,canvas.height);
-		c.lineTo(0,canvas.height);
+		c.moveTo(this.canvas.width,this.canvas.height);
+		c.lineTo(0,this.canvas.height);
 		c.stroke();
 		c.moveTo(0,0);
-		c.lineTo(0,canvas.height);
+		c.lineTo(0,this.canvas.height);
 		c.stroke();
 	},
 
@@ -262,9 +263,9 @@ SM.Graph.prototype = {
 	**/
 	redraw: function()
 	{
-		var c = canvas.getContext('2d');
+		var c = this.canvas.getContext('2d');
 		c.fillStyle= "white";
-		c.fillRect(0,0,canvas.width,canvas.height);
+		c.fillRect(0,0,this.canvas.width,this.canvas.height);
 		this.drawAxes();
 		var workersupport = true;
 		if(typeof(this.workers[0]) === "undefined") {
@@ -298,7 +299,7 @@ SM.Graph.prototype = {
 	**/
 	drawLatest: function()
 	{
-		var c = canvas.getContext('2d');
+		var c = this.canvas.getContext('2d');
 		if(this.functions.length >0)
 		{
 			
@@ -342,7 +343,7 @@ SM.Graph.prototype = {
 		plist.sort(SM.Point.sorter);
 
 		//console.log(plist);
-		var c = canvas.getContext('2d');
+		var c = this.canvas.getContext('2d');
 		c.beginPath();
 		if(!interpolated.color) {
 			interpolated.color = this.pickColor(); 
@@ -366,7 +367,7 @@ SM.Graph.prototype = {
 	plotAndConnectPoints: function(points) {
 		points.points.sort(SM.Point.sorter);
 
-		var c = canvas.getContext('2d');
+		var c = this.canvas.getContext('2d');
 		c.beginPath();
 		if(!points.color) {
 			c.strokeStyle=this.pickColor();
@@ -475,7 +476,7 @@ SM.Graph.prototype = {
 		var xpu = this.xpu();
 		var ypu = this.ypu(); 
 		var pixelx =(point.x-this.xlow) * xpu ;
-		var pixely =canvas.height -(point.y-this.ylow)* ypu;
+		var pixely =this.canvas.height -(point.y-this.ylow)* ypu;
 		return new SM.Point(pixelx,pixely);
 	},
 
@@ -486,7 +487,7 @@ SM.Graph.prototype = {
 	**/
 	pixelToPoint: function(point) {
 	   var x = this.xlow+point.x/this.xpu();
-	   var y = this.ylow+(canvas.height-point.y)/this.ypu();
+	   var y = this.ylow+(this.canvas.height-point.y)/this.ypu();
 	   return new SM.Point(x,y);
 	},
 
