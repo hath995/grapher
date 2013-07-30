@@ -27,6 +27,7 @@
 	"genfunct": "関数作る",
 	"selectedfunct": "選択式",
 	"loaddata":"負荷データ",
+	"savefunct": "関数を新規保管",
 	"japanese":"日本語",
 	"english":"English"
 }

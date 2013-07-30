@@ -51,7 +51,7 @@ function findPosition(obj)
 
 
 var canvas;
-var ourGraph = new SM.Graph(-10,10,-10,10,0,[],[]);
+var ourGraph;
 var rdb;
 var datasets = {}; 
 
@@ -107,6 +107,22 @@ $(document).ready(function() {
 	var c= canvas.getContext('2d');
 	c.fillStyle= "white";
 	c.fillRect(0,0,canvas.width,canvas.height);
+
+	ourGraph = new SM.Graph(canvas,-10,10,-10,10,0,[],[]);
+
+	ourGraph.registerInterpolator(SM.Polynomial.prototype.LagrangeInterpolation);
+	ourGraph.registerInterpolator(SM.PiecewiseFunction.createFirstDegSpline);
+	ourGraph.registerInterpolator(SM.PiecewiseFunction.createSecondDegSpline);
+	ourGraph.registerInterpolator(SM.PiecewiseFunction.createThirdDegSpline);
+	ourGraph.registerInterpolator(function(points) {
+		var linear = [new SM.Term(1,0,'x'),new SM.Term(1,1,'x')];
+		return SM.Polynomial.prototype.leastSquare(points,linear);
+	});
+	ourGraph.registerInterpolator(function(points) {
+		var quadratic =[new SM.Term(1,0,'x'),new SM.Term(1,1,'x'),new SM.Term(1,2,'x')];
+		return SM.Polynomial.prototype.leastSquare(points,quadratic);
+	});
+
 	ourGraph.drawAxes();
 	$("#b_add").click(function() {
 		buttonAddPoint();
@@ -219,15 +235,21 @@ $(document).ready(function() {
 	var basicLog = function(x) {console.log(x);};
 	$("#b_savepts").click(function() {
 		var pointsname = prompt("What do you want to name this point set?");	
-		rdb.post("DataSets",{name:pointsname,points:ourGraph.points,
-			hasPoints:1,hasFunctions:0},basicLog);
+		var newrecord = {name:pointsname,points:ourGraph.points,
+			hasPoints:1,hasFunctions:0};
+		rdb.post("DataSets",newrecord,basicLog);
+		datasets[pointsname] = {name:pointsname,funcs:ourGraph.points};
+		$("#s_datasets").append('<option>'+pointsname+'</option>');
 	});
 
 	$("#b_savefunc").click(function() {
 		var fnsetsname = prompt("What do you want to name this function set?");	
-		rdb.post("DataSets",{name:fnsetsname,
+		var newrecord ={name:fnsetsname,
 			funcs:ourGraph.functions.map(function(x){return x.toWebWorker()}),
-			hasPoints:0,hasFunctions:1},basicLog);
+			hasPoints:0,hasFunctions:1};
+		rdb.post("DataSets",newrecord,basicLog);
+		datasets[fnsetsname] = {name:fnsetsname,funcs:ourGraph.functions};
+		$("#s_datasets").append('<option>'+fnsetsname+'</option>');
 	});
 
 	$("#b_loaddata").click(function() {
@@ -316,13 +338,13 @@ $(document).ready(function() {
 
 </td>
 <td><fieldset id="f_type">
-<legend>{{I18n "functiontype"}}</legend>
-<input checked="true" type="radio" name="f_radio" id="poly" value="poly"/><label for="poly">{{I18n "polyinterp"}}</label><br>
-<input type="radio" name="f_radio" id="spl1" value="spline1"/><label for="spl1">{{I18n "linearspl"}}</label><br>
-<input type="radio" name="f_radio" id="spl2" value="spline2"/><label for="spl2">{{I18n "quadspl"}}</label><br>
-<input type="radio" name="f_radio" id="spl3" value="spline3"/><label for="spl3">{{I18n "cubicspl"}}</label><br>
-<input type="radio" name="f_radio" id="ls1" value="lslinear"/><label for="lslinear">{{I18n "linleastsq"}}</label><br>
-<input type="radio" name="f_radio" id="ls2" value="lsquadratic"/><label for="lsquadratic">{{I18n "quadleastsq"}}</label>
+	<legend>{{I18n "functiontype"}}</legend>
+	<input checked="true" type="radio" name="f_radio" id="poly" value="0"/><label for="poly">{{I18n "polyinterp"}}</label><br>
+	<input type="radio" name="f_radio" id="spl1" value="1"/><label for="spl1">{{I18n "linearspl"}}</label><br>
+	<input type="radio" name="f_radio" id="spl2" value="2"/><label for="spl2">{{I18n "quadspl"}}</label><br>
+	<input type="radio" name="f_radio" id="spl3" value="3"/><label for="spl3">{{I18n "cubicspl"}}</label><br>
+	<input type="radio" name="f_radio" id="ls1" value="4"/><label for="lslinear">{{I18n "linleastsq"}}</label><br>
+	<input type="radio" name="f_radio" id="ls2" value="5"/><label for="lsquadratic">{{I18n "quadleastsq"}}</label>
 </fieldset>
 <input type="checkbox" name="f_imm" id="f_imm" checked="true"><label for="f_imm">{{I18n "immode"}}</label>
 <button id="b_genfunc" value="" disabled="true">{{I18n "genfunct"}}</button> 

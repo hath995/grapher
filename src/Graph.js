@@ -12,10 +12,13 @@
 	A class representing a 2-axis graph
 	@class
 	@constructor
-	@param {double} xlow/xhigh The high and low values of the x-range.
-	@param {double} ylow/yhigh The high and low values of the y-range.
-	@param {double} points The array of points added.
-	@param {double} functions The array of functions added/formed.
+	@param {canvas} canvas The canvas element which the graph will use.
+	@param {double} xlow The low value of the x-range.
+	@param {double} xhigh The high value of the x-range.
+	@param {double} ylow The low value of the y-range.
+	@param {double} yhigh The high value of the y-range.
+	@param {double} points The array of points to be graphed.
+	@param {double} functions The array of functions to be graphed.
 **/
 SM.Graph = function (canvas,xlow,xhigh, ylow,yhigh,counter,points,functions) {
 	this.canvas = canvas;
@@ -27,35 +30,12 @@ SM.Graph = function (canvas,xlow,xhigh, ylow,yhigh,counter,points,functions) {
 	this.immediate = true;
 	this.points =points;
 	this.functions = functions;
-	var lsq = function(points) {
-		var linear = [new SM.Term(1,0,'x'),new SM.Term(1,1,'x')];
-		return SM.Polynomial.prototype.leastSquare(points,linear);
-	}
-
-	var qsq = function(points) {
-		var quadratic =[new SM.Term(1,0,'x'),new SM.Term(1,1,'x'),new SM.Term(1,2,'x')];
-		return SM.Polynomial.prototype.leastSquare(points,quadratic);
-	}
-	this.datamethods = [SM.Polynomial.prototype.LagrangeInterpolation,SM.PiecewiseFunction.createFirstDegSpline,SM.PiecewiseFunction.createSecondDegSpline,SM.PiecewiseFunction.createThirdDegSpline,lsq,qsq]
+	this.datamethods = []
+	//this.datamethods = [SM.Polynomial.prototype.LagrangeInterpolation,SM.PiecewiseFunction.createFirstDegSpline,SM.PiecewiseFunction.createSecondDegSpline,SM.PiecewiseFunction.createThirdDegSpline,lsq,qsq]
 	//Todo: redo this selection system, less hardcoding	
 	this.currentinterpolator = 0;
 	this.changeInterpolation = function(value) {
-		if(value == "poly") {
-			this.currentinterpolator = 0;
-		}else if(value == "spline1") {
-			this.currentinterpolator = 1;
-		}else if(value == "spline2") {
-			this.currentinterpolator = 2;
-		}else if(value == "spline3") {
-			this.currentinterpolator = 3;
-		}else if(value == "lslinear") {
-			this.currentinterpolator = 4;
-		}else if(value == "lsquadratic") {
-			this.currentinterpolator = 5;
-		}
-
-
-
+		this.currentinterpolator = value;
 	}
 	//this.workers = [new Worker("sidecalc.js"),new Worker("sidecalc.js"),new Worker("sidecalc.js"),new Worker("sidecalc.js")];
 	this.workers = [];
@@ -111,6 +91,15 @@ SM.Graph.prototype = {
 	ypu: function() {
 
 		return this.canvas.height/(this.yhigh - this.ylow);
+	},
+	
+	/**
+		Add function to the list of interpolators and return index to access it.
+		@param {function(Points[])} fn The method to add
+		@return {integer} index
+	**/
+	registerInterpolator: function(fn) {
+		return this.datamethods.push(fn)-1;	
 	},
 
 	/**

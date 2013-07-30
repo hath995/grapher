@@ -26,8 +26,7 @@
 	"genfunct": "Generate Function",
 	"selectedfunct": "Selected Equation",
 	"loaddata": "Load Data",
-	"documentation": "documentation",
-	"savefunct": "savefunct",
+	"savefunct": "Save Functions",
 	"japanese":"日本語",
 	"english":"English"
 }
