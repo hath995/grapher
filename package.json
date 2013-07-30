@@ -36,7 +36,7 @@
   "dependencies": {
     "express": "~3.3.4",
     "consolidate": "~0.9.1",
-    "handlebars": "~1",
+    "handlebars": "~1.0.12",
     "i18n-2": "~0.4.5",
     "connect-mongo": "~0.3.3",
     "mongoose": "~3.6.15"

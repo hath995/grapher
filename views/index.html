@@ -2,8 +2,8 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>-->
-<script src="js/jquery-1.7.2.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<!--<script src="js/jquery-1.7.2.min.js"></script>-->
 <script type="text/javascript" src="js/grapher.js"></script>
 <script type="text/javascript" src="js/FileSaver.min.js"></script>
 <script type="text/javascript">
@@ -238,7 +238,7 @@ $(document).ready(function() {
 		var newrecord = {name:pointsname,points:ourGraph.points,
 			hasPoints:1,hasFunctions:0};
 		rdb.post("DataSets",newrecord,basicLog);
-		datasets[pointsname] = {name:pointsname,funcs:ourGraph.points};
+		datasets[pointsname] = {name:pointsname,points:ourGraph.points};
 		$("#s_datasets").append('<option>'+pointsname+'</option>');
 	});
 

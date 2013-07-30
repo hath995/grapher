@@ -16,7 +16,7 @@ app.configure(function() {
 	app.use(express.bodyParser());
 	app.use(express.cookieParser());
 	app.use(express.session({"secret":"Ik1QaMPUbNet3k7fkkgpnHL73QIRbycswPOWUfQc04WTuhFZoOsbl4u0sp9EN9AZpyIdgiT74BQ4t9I0"}));
-	app.set('port', process.env.PORT || 3001);
+	app.set('port', process.env.PORT || 80);
 	app.set('view engine', 'html');
 	app.engine('html', consolidate.handlebars);
 	app.set('views', __dirname + '/views');
