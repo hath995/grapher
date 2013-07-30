@@ -81,7 +81,19 @@ SDB.IndexedDBAdapter = function(databasename,version) {
 	};
 	this.adapterSetup = function(callback) {
 		var self = this;
-		var dbrequest = indexedDB.open(this.dbname);
+		var dbrequest = indexedDB.open(this.dbname,this.version);
+		dbrequest.onupgradeneeded = function() {
+			console.log("DB altered structure");
+			var newdb = dbrequest.result;
+			for(var b in self.buckets) {
+				var store = newdb.createObjectStore(self.buckets[b].name,self.buckets[b].key);
+				for(var i = 0; i < self.buckets[b].indices.length; i++) {
+					var index = self.buckets[b].indices[i];
+					store.createIndex(index.name,index.name,index);
+				}
+			}
+		}
+
 		dbrequest.onsuccess = function() {
 			console.log("DB setup successful: "+self.dbname+" opened.");
 			self.db = dbrequest.result;
@@ -90,17 +102,7 @@ SDB.IndexedDBAdapter = function(databasename,version) {
 		dbrequest.onerror = function() {
 			console.log("DB setup failed: "+self.dbname+" not opened.");
 		}
-		dbrequest.onupgradeneed = function() {
-			console.log("DB altered structure");
-			var newdb = dbrequest.result;
-			for(var b in self.buckets) {
-				var store = newdb.createObjectStore(self.buckets[b].name,self.buckets[b].key);
-				for(var i = 0; i < self.buckets[b].indices; i++) {
-					var index = self.buckets[b].indices[i];
-					store.createIndex(index.name,index);
-				}
-			}
-		}
+		
 	}
 
 	/**

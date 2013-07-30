@@ -2,6 +2,7 @@ var express = require('express');
 var consolidate = require('consolidate');
 var Handlebars = require("handlebars");
 var app = express();
+var fs = require('fs');
 var i18n = new (require('i18n-2'))({locales: ['en', 'ja']}); // setup some locales - other locales default to the first locale
 
 Handlebars.registerHelper('I18n', function(str) {
@@ -10,7 +11,8 @@ Handlebars.registerHelper('I18n', function(str) {
 
 //app.configure('dev',function() {
 app.configure(function() {
-	app.use(express.logger('default'));
+	app.use(express.logger({format:'default',
+		stream:fs.createWriteStream("site.log",{flags:'w+'})}));
 	app.use(express.bodyParser());
 	app.use(express.cookieParser());
 	app.use(express.session({"secret":"Ik1QaMPUbNet3k7fkkgpnHL73QIRbycswPOWUfQc04WTuhFZoOsbl4u0sp9EN9AZpyIdgiT74BQ4t9I0"}));

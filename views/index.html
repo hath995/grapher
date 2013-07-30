@@ -65,6 +65,14 @@ function buttonAddPoint() {
 	var pointValues = pointRe.exec(newpoint);
 	var temp = new SM.Point(pointValues[1],pointValues[3]);
 	ourGraph.addPoint(temp);
+	$("#s_points").append('<option>'+temp+'</option>');
+	if(ourGraph.immediate) {
+		var newpoly = ourGraph.generateFunction();	
+		if(newpoly) {
+			$("#s_functionlist").append('<option>'+newpoly+'</option>');
+			ourGraph.drawLatest();	
+		}
+	}
 }
 
 /**
@@ -80,9 +88,16 @@ function clickAdd(mevent) {
    y -= canvaslocation.topOffset;
    //console.log("offsets: "+canvaslocation.leftOffset+","+canvaslocation.topOffset);
    
-   x = ourGraph.xlow+x/ourGraph.xpu();
-   y = ourGraph.ylow+(canvas.height-y)/ourGraph.ypu();
-   ourGraph.addPoint(new SM.Point(x,y));
+   var temp = ourGraph.pixelToPoint(new SM.Point(x,y));
+   ourGraph.addPoint(temp);
+   $("#s_points").append('<option>'+temp+'</option>');
+   if(ourGraph.immediate) {
+	var newpoly = ourGraph.generateFunction();	
+	if(newpoly) {
+		$("#s_functionlist").append('<option>'+newpoly+'</option>');
+		ourGraph.drawLatest();	
+	}
+   }
 
 }
 
@@ -100,10 +115,12 @@ $(document).ready(function() {
 	$("#b_remove").click(function() {
 		var p = $("#s_points").val();
 		ourGraph.removePoint(p);
+		$("#s_points :selected").remove();
 	});
 
 	$("#b_removeall").click(function() {
 		ourGraph.removeAllPoints();
+		$("#s_points").empty();
 	});
 
 	$("#x_range").change(function() {
@@ -119,6 +136,7 @@ $(document).ready(function() {
 	$("#b_removefunc").click(function() {
 		var f = $("#s_functionlist").val();
 		ourGraph.removeFunction(f);
+		$("#s_functionlist :selected").remove();
 					
 	});
 
@@ -127,11 +145,14 @@ $(document).ready(function() {
 	});
 
 	$("#b_removeallfunc").click(function() {
+		$("#s_functionlist").empty();
 		ourGraph.removeAllFunctions();			
 	});
 
 	$("#b_clear").click(function() {
 		
+		$("#s_functionlist").empty();
+		$("#s_points").empty();
 		ourGraph.clear();
 	});
 
@@ -147,27 +168,35 @@ $(document).ready(function() {
 	});
 
 	$("#b_genfunc").click(function() {
-		ourGraph.generateFunction();
+		var newpoly = ourGraph.generateFunction();
+		$("#s_functionlist").append('<option>'+newpoly+'</option>');
 		ourGraph.drawLatest();	
 	});
 
-	rdb = new RESTDB(new IndexedDBAdapter("NumericData"));
+	var pointindex = new SDB.Index("hasPoints",false,false); 	
+	var functionindex = new SDB.Index("hasFunctions",false,false); 	
+	var nameindex =  new SDB.Index("name",true,false);
+	var indices = [pointindex,functionindex,nameindex];
+	var rdbbucket = new SDB.Bucket("DataSets",{keyPath: "id",autoIncrement: true},indices);
+	var dbadapter = new SDB.IndexedDBAdapter("NumericData",5);
+	dbadapter.addBucket(rdbbucket);
+	rdb = new SDB.RESTDB(dbadapter);
 	rdb.adapterSetup(function() {
 		var classify ={}; 
 		classify[SM.Term.serializeName] = SM.Term.fromWebWorker;
 		classify[SM.Polynomial.serializeName] = SM.Polynomial.fromWebWorker;
 		classify[SM.PiecewiseFunction.serializeName] = SM.PiecewiseFunction.fromWebWorker;
 
-		rdb.get("FunctionSets",null,function(x) {
-			x.funcs.forEach(function(y) {
-				classify[y.serializeName](y);
-			});
-			datasets[x.name] = x;
-			$("#s_datasets").append('<option value="'+x.name+'">'+x.name+'</option>');
-		});
+		rdb.get("DataSets",null,function(x) {
+			if(x.funcs){
+				x.funcs.forEach(function(y) {
+					classify[y.serializeName](y);
+				});
+			}
 
-		rdb.get("PointSets",null,function(x) {
-			x.points.forEach(function(p){ SM.reattachMethods(p,SM.Point);});
+			if(x.points) {
+				x.points.forEach(function(p){ SM.reattachMethods(p,SM.Point);});
+			}
 			datasets[x.name] = x;
 			$("#s_datasets").append('<option value="'+x.name+'">'+x.name+'</option>');
 		});
@@ -190,12 +219,15 @@ $(document).ready(function() {
 	var basicLog = function(x) {console.log(x);};
 	$("#b_savepts").click(function() {
 		var pointsname = prompt("What do you want to name this point set?");	
-		rdb.post("PointSets",{name:pointsname,points:ourGraph.points},basicLog);
+		rdb.post("DataSets",{name:pointsname,points:ourGraph.points,
+			hasPoints:1,hasFunctions:0},basicLog);
 	});
 
 	$("#b_savefunc").click(function() {
 		var fnsetsname = prompt("What do you want to name this function set?");	
-		rdb.post("FunctionSets",{name:fnsetsname,funcs:ourGraph.functions.map(function(x){return x.toWebWorker()})},basicLog);
+		rdb.post("DataSets",{name:fnsetsname,
+			funcs:ourGraph.functions.map(function(x){return x.toWebWorker()}),
+			hasPoints:0,hasFunctions:1},basicLog);
 	});
 
 	$("#b_loaddata").click(function() {
@@ -239,6 +271,7 @@ $(document).ready(function() {
 </head>
 <body bgcolor="#3f8295">
 <h1>{{ I18n "title"}} (A work in progress)</h1>
+<div id="langbox" style="float:right;"><a href="/lang/en">{{ I18n "english" }}</a><a href="/lang/ja">{{ I18n "japanese"}}</a></div>
 <a href="tests/test.html">{{I18n "tests"}}</a>
 <a href="docs/">{{I18n "docs"}}</a>
 <a href="https://github.com/hath995/grapher">{{I18n "github"}}</a>

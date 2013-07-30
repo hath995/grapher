@@ -332,7 +332,7 @@ SM.PiecewiseFunction.prototype = {
 			serializedfuncts[j] = this.functs[j].toWebWorker();
 		}
 		return {
-			"serializeName":PiecewiseFunction.serializeName,
+			"serializeName":SM.PiecewiseFunction.serializeName,
 			"ranges":this.ranges,
 			"functs":serializedfuncts
 		};
