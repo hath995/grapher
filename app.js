@@ -91,7 +91,7 @@ app.get('/users/:user',function(req, res) {
 
 });
 
-app.post('/login/',function(req, res) {
+app.post('/login/?',function(req, res) {
 	var post = req.body;
 	var sha_hash = crypto.createHash('sha512');
 	sha_hash.update(post.upass+Constants.HASH_SALT,'utf8');
@@ -109,15 +109,22 @@ app.post('/login/',function(req, res) {
 
 			res.json({login:"invalid","matched":passmatched});
 		}	
-		/*
-		res.json({"_id":user[0]._id,
-			"username":user[0].username,
-			"wtf":"arg"
-			});
-		*/
-
+		
 	});
 });
+
+app.post('/db/datasets/:username/?',function(req, res) {
+
+});
+
+app.get('/db/datasets/:username/(:dsname)?/?',function(req, res) {
+
+});
+
+app.delete('/db/datasets/:username/:dsname/?',function(req, res) {
+
+});
+
 /*
 ROUTES
 POST:Users/
@@ -126,9 +133,9 @@ GET:Users/:user
 POST:/login/
 POST:/logout/
 
-POST:db/datasets/:dsname
-GET:db/datasets/:dsname
-DELETE:db/datasets/:dsname
+POST:db/datasets/:username/:dsname
+GET:db/datasets/:username/(:dsname)?
+DELETE:db/datasets/:username/:dsname
 */
 
 app.listen(app.get('port'));

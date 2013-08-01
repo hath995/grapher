@@ -2,7 +2,7 @@
   "name": "grapher",
   "version": "0.2.0",
   "description": "A numeric and algebraic library for Javascript.",
-  "main": "jj",
+  "main": "app.js",
   "directories": {
     "test": "tests"
   },

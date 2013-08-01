@@ -39,4 +39,5 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-contrib-copy');
 	grunt.registerTask('default',['concat','copy']);
 	//node node_modules/jsdoc2/app/run.js -a -t=node_modules/jsdoc2/templates/jsdoc src/*.js
+	//./mongod --dbpath ~/code/node/grapher/data
 }
