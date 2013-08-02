@@ -7,6 +7,9 @@
 	@param {Term[]} terms An array of Term objects
 **/
 SM.Polynomial = function(terms) {
+	if(!(this instanceof SM.Polynomial)) {
+		return new SM.Polynomial(terms);
+	}
 	this.terms = terms;
 }
 /**

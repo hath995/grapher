@@ -8,6 +8,9 @@
 	and parens are exclusive 
 **/
 SM.Range = function(rangestring) {
+	if(!(this instanceof SM.Range)) {
+		return new SM.Range(rangestring);
+	}
 	/**
 		Private helper function to parse the range string
 		@private
@@ -115,6 +118,9 @@ SM.Range.prototype = {
 	@param {Range[]} ranges An array of Range objects for each of the functs provided
 **/
 SM.PiecewiseFunction = function(functs, ranges) {
+	if(!(this instanceof SM.PiecewiseFunction)) {
+		return new SM.PiecewiseFunction(functs, ranges);
+	}
 	if(!(functs instanceof Array) || !(ranges instanceof Array))
 	{
 		throw new Error("Parameters expect Arrays.");

@@ -17,6 +17,9 @@
 	
 SM.Matrix = function(rows,columns,values) 
 {
+	if(!(this instanceof SM.Matrix)) {
+		return new SM.Matrix(rows,columns,values);
+	}	
 	this.rows = rows;
 	this.columns = columns;
 	this.values = values;

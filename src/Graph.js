@@ -21,6 +21,9 @@
 	@param {double} functions The array of functions to be graphed.
 **/
 SM.Graph = function (canvas,xlow,xhigh, ylow,yhigh,counter,points,functions) {
+	if(!(this instanceof SM.Graph)) {
+		return new SM.Graph(canvas,xlow,xhigh, ylow,yhigh,counter,points,functions)
+	}
 	this.canvas = canvas;
 	this.xlow = xlow;
 	this.xhigh = xhigh;

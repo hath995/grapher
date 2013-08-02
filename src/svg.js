@@ -18,6 +18,9 @@ scale all points to container.
 	@param {Range} yr The range of the y values represented 
 **/
 SM.SVG = function(g) {
+	if(!(this instanceof SM.SVG)) {
+		return new SM.SVG(g);
+	}
 	this.funcs = [];
 	this.graph = g;
 	this.addCurves(g.functions);
@@ -65,6 +68,19 @@ SM.SVG.prototype = {
 					}
 					var pw = SM.PiecewiseFunction.createThirdDegSpline(curvepoints);
 				}
+				var unitspacepoints = pw.generateBezierPaths();
+				var pixelspacepoints = transformPointsets(unitspacepoints,this.graph);;
+				this.funcs.push(pixelspacepoints);
+
+			}else if("resolve" in fn) {
+				var xrange = this.graph.xrange();
+				var delta = (xrange.upperbound-xrange.lowerbound)/20;
+				var curvepoints = [];
+				for(var j = 0; j <= 20; j++) {
+					var xprime = xrange.lowerbound+j*delta;
+					curvepoints.push(new SM.Point(xprime,fn.resolve(xprime)));
+				}
+				var pw = SM.PiecewiseFunction.createThirdDegSpline(curvepoints);
 				var unitspacepoints = pw.generateBezierPaths();
 				var pixelspacepoints = transformPointsets(unitspacepoints,this.graph);;
 				this.funcs.push(pixelspacepoints);

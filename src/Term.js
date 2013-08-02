@@ -39,6 +39,9 @@ SM.reattachMethods = function(serialized,originalclass) {
 **/
 SM.Term = function(coefficient, power, variable)
 {
+	if(!(this instanceof SM.Term)) {
+		return new SM.Term(coefficient, power, variable);
+	}
 	if(variable === undefined || power === undefined || coefficient === undefined) {
 		throw new Error("Cofficient, power, and variable expected in parameters.");
 	}
@@ -463,6 +466,9 @@ SM.Term.prototype = {
 **/
 SM.Point = function(x,y)
 {
+	if(!(this instanceof SM.Point)) {
+		return new SM.Point(x,y);
+	}
 		this.x = parseFloat(x);
 		this.y = parseFloat(y);
 }
