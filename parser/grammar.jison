@@ -12,6 +12,8 @@
 "^"	{return '^';}
 "("	{return '(';}
 ")"	{return ')';}
+"|"	{return '|';}
+"="	{return '=';}
 "cos"	{return 'TRANS';}
 "sin"	{return 'TRANS';}
 "tan"	{return 'TRANS';}
@@ -31,7 +33,22 @@
 result
 	: expression
 		{return $1}
+	| expression '|' subresult 
+		{return ($1).resolve($3);}
 	;
+
+subresult
+	: variable '=' expression subresult2
+		{var holder = Object.create($4); holder[$1.name] = $3; $$ = holder;}		
+	;
+
+subresult2
+	: '|' subresult
+		{$$ = $2;}
+	| 
+		{$$ = {};}
+	;
+
 expression
 	: component
 		{$$ = $1}
