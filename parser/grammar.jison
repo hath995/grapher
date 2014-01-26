@@ -50,27 +50,17 @@ subresult2
 	;
 
 expression
-	: component
-		{$$ = $1}
-	| component '+' expression 
-		{$$ = new SM.Operation('+',$1,$3);}
-	| component '-' expression 
-		{$$ = new SM.Operation('-',$1,$3);}
-	;
-
-component
-	: factor
-		{$$ = $1} 
-	| factor '*' component 
-		{$$ = new SM.Operation('*',$1,$3);}
-	| factor '/' component 
-		{$$ = new SM.Operation('/',$1,$3);}
-	;
-
-factor
 	: item 
 		{$$ = $1}
-	| item "^" factor 
+	| expression '+' expression 
+		{$$ = new SM.Operation('+',$1,$3);}
+	| expression '-' expression 
+		{$$ = new SM.Operation('-',$1,$3);}
+	| expression '*' expression
+		{$$ = new SM.Operation('*',$1,$3);}
+	| expression '/' expression
+		{$$ = new SM.Operation('/',$1,$3);}
+	| expression '^' expression
 		{$$ = new SM.Operation('^',$1,$3);}
 	;
 
@@ -80,6 +70,7 @@ item
 	| singular
 		{$$ = $1}
 	;
+
 singular
 	: transcendental
 		{$$ = $1}
