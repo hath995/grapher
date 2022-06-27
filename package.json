@@ -26,19 +26,10 @@
   "readmeFilename": "README.md",
   "gitHead": "4b314ad22bce7fff19ba78c16fdc96e8214f2602",
   "devDependencies": {
-    "grunt": "~0.4.1",
-    "grunt-contrib-concat": "~0.3.0",
-    "grunt-contrib-jshint": "~0.6.0",
-    "grunt-contrib-uglify": "~0.2.2",
-    "grunt-contrib-copy": "~0.4.1",
     "jsdoc2": "~2.4.0"
   },
   "dependencies": {
-    "express": "~3.3.4",
-    "consolidate": "~0.9.1",
-    "handlebars": "~1.0.12",
-    "i18n-2": "~0.4.5",
-    "connect-mongo": "~0.3.3",
-    "mongoose": "~3.6.15"
+    "mocha": "^10.0.0",
+    "typescript": "^4.7.4"
   }
 }

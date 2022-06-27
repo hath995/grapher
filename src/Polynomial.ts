@@ -1,4 +1,5 @@
-
+import {Term, reattachMethods} from "./Term";
+import {Matrix} from "./Matrix";
 
 /**
 	Constructs a polynomial, simply a set of terms
@@ -6,80 +7,82 @@
 	@constructor
 	@param {Term[]} terms An array of Term objects
 **/
-SM.Polynomial = function(terms) {
-	if(!(this instanceof SM.Polynomial)) {
-		return new SM.Polynomial(terms);
+export class Polynomial {
+	terms: Term[];
+	serializeName?: string;
+	constructor(terms:Term[]) {
+		if(!(this instanceof Polynomial)) {
+			return new Polynomial(terms);
+		}
+		this.terms = terms;
 	}
-	this.terms = terms;
-}
 /**
 	A static constant to help with de/serialization
 	@constant
 	@static
 **/
-SM.Polynomial.serializeName = 'Polynomial';
+	static serializeName = 'Polynomial';
 
 /**
 	Finish reconstituting a Polynomial after passing to a web worker
 	@static
 	@param {Object} that A polynomial stripped of methods
 **/
-SM.Polynomial.fromWebWorker = function(that) {
-	SM.reattachMethods(that,SM.Polynomial);
+static fromWebWorker(that) {
+	reattachMethods(that,Polynomial);
 	for(var i =0; i < that.terms.length; i++) 
 	{
-		SM.Term.fromWebWorker(that.terms[i]);
+		Term.fromWebWorker(that.terms[i]);
 	}
 };
 
-SM.Polynomial.prototype = {
 	/**
 		Custom JSON representation to handle passing to web workers
 		@return {Object} For JSON.stringify
 	**/
-	toWebWorker: function() {
+	toWebWorker() {
 		
 		var serializedterms = new Array(this.terms.length); 
 		for(var i=0;i<this.terms.length; i++) {
 			serializedterms[i] = this.terms[i].toWebWorker(); 
 		}
 		return {
-			"serializeName": SM.Polynomial.serializeName,
+			"serializeName": Polynomial.serializeName,
 			"terms":serializedterms	
 		};
-	},
+	}
 
 
 	/**
 		Provides the Polynomials degree
 
 	**/
-	degree: function() {
-		var degrees = [];
+	degree(): number {
+		var degrees: number[] = [];
 		for(var i=0; i < this.terms.length; i++) {
 			degrees.push(this.terms[i].degree());
 		}
 		return Math.max.apply(null, degrees);
-	},
+	}
 
 	/**
 		Evaluates the polynomial for value value
 		@param {double | object} value The value to be applied to the function/polynomial
 		@return {double | object} the result 
 	**/
-	resolve: function(value) { 
-		var sumofterms = 0; 
+	resolve(value) { 
+		var sumofterms: number | Term | Polynomial = 0; 
 		for (var i=0;i<this.terms.length;i++)
 		{
 			var termvalue = this.terms[i].resolve(value);
-			if(termvalue instanceof SM.Term || termvalue instanceof SM.Polynomial) {
-				if(sumofterms instanceof SM.Term || sumofterms instanceof SM.Polynomial) {
+			if(termvalue instanceof Term || termvalue instanceof Polynomial) {
+				if(sumofterms instanceof Term || sumofterms instanceof Polynomial) {
 					sumofterms = sumofterms.add(termvalue);
 				}else{
 					sumofterms = termvalue.add(sumofterms);
 				}
 			}else{
-				if(sumofterms instanceof SM.Term || sumofterms instanceof SM.Polynomial) {
+				if(sumofterms instanceof Term || sumofterms instanceof Polynomial) {
 					sumofterms = sumofterms.add(termvalue);
 				}else{
 					sumofterms += termvalue; 
@@ -87,13 +90,13 @@ SM.Polynomial.prototype = {
 			}
 		}
 		return sumofterms;
-	},
+	}
 
 	/**
 		Generates a string representation of the Polynomial
 		@return {string} The string representation
 	**/
-	toString: function() {
+	toString(): string {
 		var retstring = "";
 		for(var i=0; i < this.terms.length; i++)
 		{
@@ -115,113 +118,113 @@ SM.Polynomial.prototype = {
 		Generates an array of serialized terms 
 		@return {String[]} The array of serialized terms
 	**/
-	serialize: function() {
-		var serialterms = [];
+	serialize(): string[] {
+		var serialterms: string[] = [];
 		for(var i=0; i < this.terms.length; i++)
 		{
 			serialterms[i] = this.terms[i].serialize();
 		}
 		return serialterms;
-	},
+	}
 
 	/**
 		Adds one of several object to a polynomial
 		@param {Term|Polynomial|number} summand A Term, or Polynomial, or number to be added
 		@return {Polynomial} The sum
 	*/
-	add: function(summand) {
-		if(summand instanceof SM.Polynomial)
+	add(summand: Term|Polynomial|number): Polynomial {
+		if(summand instanceof Polynomial)
 		{
-			var temppolynomial = new SM.Polynomial(this.terms.concat(summand.terms));
+			var temppolynomial = new Polynomial(this.terms.concat(summand.terms));
 			temppolynomial.simplify();
 			temppolynomial.sort();
 			return temppolynomial;
-		}else if(summand instanceof SM.Term) {
+		}else if(summand instanceof Term) {
 			var matchingpower = false;
 			//var temppolynomial = this;
-			var temppolynomial = new SM.Polynomial(this.terms.slice()); 
+			var temppolynomial = new Polynomial(this.terms.slice()); 
 			temppolynomial.terms.push(summand);
 			temppolynomial.simplify();
 			temppolynomial.sort();
 			return temppolynomial;
 		}else if(typeof summand === "number") {
-			var temppolynomial = new SM.Polynomial(this.terms.slice());
-			var variable = 'x';
+			var temppolynomial = new Polynomial(this.terms.slice());
+			var variable: string | {[name: string]: number} = 'x';
 			if(this.terms !== undefined)
 			{
 				variable = this.terms[0].variable;
 			}
-			var tempterm = new SM.Term(summand,0, variable);
+			var tempterm = new Term(summand,0, variable);
 			temppolynomial.terms.push(tempterm);
 			temppolynomial.simplify();
 			return temppolynomial;	
 		}
-
-	},
+		throw Error("incorrect summand type provided to Polynomial.add");
+	}
 
 	/**
 		Subtract one of several object to a polynomial
 		@param {Term|Polynomial|number} subtrahend A Term, or Polynomial, or number to be added
 		@return {Polynomial} The difference
 	*/
-	subtract: function(subtrahend) {
-		if(subtrahend instanceof SM.Polynomial)
+	subtract(subtrahend) {
+		if(subtrahend instanceof Polynomial)
 		{
 			var sbt = subtrahend.terms.slice();
 			for(var i = 0; i < sbt.length; i++) {
 				sbt[i] = sbt[i].neg();
 			}
-			var temppolynomial = new SM.Polynomial(this.terms.concat(sbt));
+			var temppolynomial = new Polynomial(this.terms.concat(sbt));
 			temppolynomial.simplify();
 			temppolynomial.sort();
 			return temppolynomial;
-		}else if(subtrahend instanceof SM.Term) {
+		}else if(subtrahend instanceof Term) {
 			var matchingpower = false;
-			var temppolynomial = new SM.Polynomial(this.terms.slice()); 
+			var temppolynomial = new Polynomial(this.terms.slice()); 
 			temppolynomial.terms.push(subtrahend.neg());
 			temppolynomial.simplify();
 			temppolynomial.sort();
 			return temppolynomial;
 		}else if(typeof subtrahend === "number") {
-			var temppolynomial = new SM.Polynomial(this.terms.slice());
-			var variable = 'x';
+			var temppolynomial = new Polynomial(this.terms.slice());
+			var variable: string | {[name: string]: number} = 'x';
 			if(this.terms !== undefined)
 			{
 				variable = this.terms[0].variable;
 			}
-			var tempterm = new SM.Term(0-subtrahend,0, variable);
+			var tempterm = new Term(0-subtrahend,0, variable);
 			temppolynomial.terms.push(tempterm);
 			temppolynomial.simplify();
 			return temppolynomial;	
 		}
 
-	},
+	}
 
 	/**
 		Multiply a polynomial by something
 		@param {Polynomial|Term|number} multiplicand The item to be multiplied by
 		@return {Polynomial} The product
 	**/
-	multiply: function(multiplicand) {
-		var productterms = [];
-		if(multiplicand instanceof SM.Polynomial) {
+	multiply(multiplicand: Polynomial|Term|number): Polynomial {
+		var productterms: (Term)[] = [];
+		if(multiplicand instanceof Polynomial) {
 			for(var i =0; i < this.terms.length;i++)
 			{
 				for(var j =0; j < multiplicand.terms.length;j++)
 				{
 					
-					productterms.push(this.terms[i].multiply(multiplicand.terms[j]));
+					productterms.push(this.terms[i].multiply(multiplicand.terms[j]) as Term);
 				}
 			}
-		}else if(multiplicand instanceof SM.Term || typeof multiplicand === "number" ) {
+		}else if(multiplicand instanceof Term || typeof multiplicand === "number" ) {
 			for(var i =0; i < this.terms.length;i++)
 			{
-				productterms.push(this.terms[i].multiply(multiplicand));
+				productterms.push(this.terms[i].multiply(multiplicand) as Term);
 			}
 		}
-		var temppolynomial = new SM.Polynomial(productterms);
+		var temppolynomial = new Polynomial(productterms);
 		return temppolynomial;
-	},
+	}
 
 	/***
 		Division of a Polynomial by a number or term. Division by a polynomial is a much 
@@ -229,27 +232,27 @@ SM.Polynomial.prototype = {
 		@param {Term|number} denominator The denominator
 		@return {Polynomial} The quotient	
 	**/
-	divide: function(denominator) {
+	divide(denominator: Term|number): Polynomial {
 		var divisionterms = this.terms.slice();
-		if(typeof denominator === "number" || denominator instanceof SM.Term)
+		if(typeof denominator === "number" || denominator instanceof Term)
 		{
 			for(var i=0; i < divisionterms.length; i ++)
 			{
-				divisionterms[i] = divisionterms[i].divide(denominator);
+				divisionterms[i] = divisionterms[i].divide(denominator) as Term;
 			}
 		}
-		return new SM.Polynomial(divisionterms);
-	},
+		return new Polynomial(divisionterms);
+	}
 
 	/**
 		Produce powers of polynomials, only works with integers currently
 		@param {Integer} exponent the power to be raised by
 		@return {Polynomial} The resulting polynomial
 	**/
-	exponentiate: function(exponent) {
+	exponentiate(exponent: number) {
 		var memoizedpowers = {};
 		var originalterm = this;
-		return (function exponentBySquares(value,exp) {
+		return (function exponentBySquares(value: Polynomial,exp: number) {
 			if(exp === 0) {
 				var singlevar;
 				for(var k in value.terms[0].variable)
@@ -257,30 +260,30 @@ SM.Polynomial.prototype = {
 					singlevar = k;
 					break;
 				}
-				return new SM.Term(1,0,singlevar);	
+				return new Term(1,0,singlevar);	
 			}else if(exp === 1) {
 				return value;
 			}else if(exp%2 === 1) {
-				var temp =value.multiply(exponentBySquares(value.multiply(value),(exp-1)/2));
+				let temp =value.multiply(exponentBySquares(value.multiply(value),(exp-1)/2));
 				//var temp =originalterm.multiply(exponentBySquares(value.multiply(value),(exp-1)/2));
 				temp.simplify();
 				temp.sort();
 				return temp; 
 			}else{
-				var temp =exponentBySquares(value.multiply(value),(exp)/2); 
+				let temp =exponentBySquares(value.multiply(value),(exp)/2); 
 				temp.simplify();
 				temp.sort();
 				return temp;
 			}
 		})(this,exponent);
-	},
+	}
 
 	/**
 		Due to the implmentation of some of the mathematical operations they generate
 		unsimplified polynomials. This corrects that.
 	**/
 
-	simplify: function() {
+	simplify() {
 		var  powers = {}; //a dictionary of variable groupings each a dictionary of powers 
 		var  constants = 0;
 		for(var i =0; i < this.terms.length; i++) //for every term
@@ -318,7 +321,7 @@ SM.Polynomial.prototype = {
 		}
 		this.terms = [];
 		if(constants !== 0) {
-			this.terms.push(new SM.Term(constants,0,'x'));
+			this.terms.push(new Term(constants,0,'x'));
 		}
 		for(var variable in powers) 
 		{
@@ -329,12 +332,12 @@ SM.Polynomial.prototype = {
 				}
 			}
 		}
-	},
+	}
 	/**
 		Due to the implmentation of the mathematical operations terms are  not in 
 		any sorted order. This sorts them.
 	**/
-	sort: function() {
+	sort() {
 		var addfn = function(a,b) {return a+b;};
 		this.terms.sort(function(a,b) {
 			var left = parseFloat(a.power.reduce(addfn,0));
@@ -345,7 +348,7 @@ SM.Polynomial.prototype = {
 				return 1;
 			return 0;	
 		});
-	},
+	}
 
 	/**
 		Generate orthogonal polynomials to assist least square methods
@@ -353,7 +356,7 @@ SM.Polynomial.prototype = {
 		@param {Integer} power The highest power of orthogonal polynomial desired
 		@return {Polynomial[]} The orthogonal functions
 	**/
-	orthogonalPolynomials: function(points, power) {
+	orthogonalPolynomials(points, power) {
 		if((typeof points[0]) != "number")
 		{
 			throw new Error("Array of numbers expected.");
@@ -363,7 +366,7 @@ SM.Polynomial.prototype = {
 		{
 			throw new Error("Power is expected to be");
 		}
-		var q = [new SM.Polynomial([new SM.Term(1,0,'x')])]; //q is the name of the basis function set
+		var q: Polynomial[] = [new Polynomial([new Term(1,0,'x')])]; //q is the name of the basis function set
 		var xvals = points.slice();
 		/*for(var i = 0; i < points.length; i++) {
 			xvals.push(points[i].x);
@@ -377,20 +380,20 @@ SM.Polynomial.prototype = {
 			}
 			return result;
 		}
-		var alphazero = innerProduct((new SM.Term(1,1,'x')).multiply(q[0]),q[0],xvals)/innerProduct(q[0],q[0],xvals); 
-		q[1] = (new SM.Term(1,1,'x')).subtract(alphazero);
+		var alphazero = innerProduct((new Term(1,1,'x')).multiply(q[0]),q[0],xvals)/innerProduct(q[0],q[0],xvals); 
+		q[1] = (new Term(1,1,'x')).subtract(alphazero) as Polynomial;
 		for(var i=2; i <= power; i++) {
 			var n = i-1;
-			var alphan = innerProduct((new SM.Term(1,1,'x')).multiply(q[n]),q[n],xvals)/innerProduct(q[n],q[n],xvals);
-			var betan = innerProduct((new SM.Term(1,1,'x')).multiply(q[n]),q[n-1],xvals)/innerProduct(q[n-1],q[n-1],xvals);
-			q[i] = (new SM.Term(1,1,'x')).multiply(q[n]).subtract(q[n].multiply(alphan)).subtract(q[n-1].multiply(betan));
+			var alphan = innerProduct((new Term(1,1,'x')).multiply(q[n]),q[n],xvals)/innerProduct(q[n],q[n],xvals);
+			var betan = innerProduct((new Term(1,1,'x')).multiply(q[n]),q[n-1],xvals)/innerProduct(q[n-1],q[n-1],xvals);
+			q[i] = (new Term(1,1,'x')).multiply(q[n]).subtract(q[n].multiply(alphan)).subtract(q[n-1].multiply(betan)) as Polynomial;
 		}
 		for(var i=0; i < q.length; i++)  {
 			q[i].simplify();
 			q[i].sort();
 		}
 		return q;
-	},
+	}
 
 	/**
 		Generate a function of least squares for given data points and given basis functions
@@ -398,7 +401,7 @@ SM.Polynomial.prototype = {
 		@param {Polynomial[]} bases The basis functions
 		@return {Polynomial} The method of least square distance from all of the points
 	**/
-	leastSquare:  function(points, bases) {
+	leastSquare(points, bases) {
 		var sortedpoints = points.slice();
 		sortedpoints.sort(function(a,b) {
 			if(a.x < b.x) {
@@ -418,8 +421,8 @@ SM.Polynomial.prototype = {
 			}
 			return result;
 		}
-		var normalequations = [];
-		var normalsums = [];
+		var normalequations: number[][] = [];
+		var normalsums: number[] = [];
 		var n = bases.length;
 		for( var i =0; i < n; i++) {
 			normalequations.push([]);
@@ -427,27 +430,27 @@ SM.Polynomial.prototype = {
 				var sum = innerProduct(bases[i],bases[j],points);
 				normalequations[i][j] = sum;
 			}
-			normalsums.push(innerProduct(bases[i],new SM.Term(1,1,'y'),points));
+			normalsums.push(innerProduct(bases[i],new Term(1,1,'y'),points));
 		}
-		var normalmatrix = new SM.Matrix(n,n,normalequations);
-		var basisconstants = normalmatrix.scaledPartialPivotGaussian(SM.Matrix.columnVector(normalsums));
+		var normalmatrix = new Matrix(n,n,normalequations);
+		var basisconstants = normalmatrix.scaledPartialPivotGaussian(Matrix.columnVector(normalsums));
 		var result = bases[0].multiply(basisconstants.values[0][0]);
 		for(var i =1; i < n; i++) {
 			result = result.add(bases[i].multiply(basisconstants.values[i][0]));
 		}
 		result.sort();
 		return result;
-	},
+	}
 
 	/**
 		Generates a polynomial given an array of points using the Lagrange Interpolation Method
 		@param {Point[]} points The points to be interpolated
 		@return {Polynomial} The function interpolating the points.
 	**/
-	LagrangeInterpolation: function(points)
+	LagrangeInterpolation(points)
 	{
 		var interpolated;
-		var x = new SM.Term(1,1,'x');
+		var x = new Term(1,1,'x');
 		for(var i=0; i <points.length; i++)
 		{
 			var ix = points[i].x;
@@ -478,14 +481,14 @@ SM.Polynomial.prototype = {
 		interpolated.simplify();
 		interpolated.sort();
 		return interpolated;
-	},
+	}
 
 	/**
 		Returns the coefficient of the polynomial of the first term of degree n
 		@param {integer} n 
 		@return {double}
 	**/
-	degreeCoeff: function(n) {
+	degreeCoeff(n) {
 		for(var i =0; i < this.terms.length; i++) {
 			if(this.terms[i].degree() ===  n) {
 				return this.terms[i].coefficient;

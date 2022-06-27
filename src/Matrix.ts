@@ -14,17 +14,17 @@
 	@param columns {Integer} number of columns in the matrix
 	@param values {Double[][]} a multidimensional array with rows and column as specified by the other parameters
 **/
-	
-SM.Matrix = function(rows,columns,values) 
-{
-	if(!(this instanceof SM.Matrix)) {
-		return new SM.Matrix(rows,columns,values);
-	}	
-	this.rows = rows;
-	this.columns = columns;
-	this.values = values;
+export class Matrix {	
+	rows: number;
+	columns: number;
+	values: number[][];
+	constructor(rows: number, columns: number, values: number[][]) 
+	{
+		this.rows = rows;
+		this.columns = columns;
+		this.values = values;
 
-}
+	}
 
 /**
 	Given an array of numbers creates a row Matrix object.
@@ -32,9 +32,9 @@ SM.Matrix = function(rows,columns,values)
 	@param {Double[]} the matrix entries 
 	@return {Matrix} a 1-by-X matrix
 **/
-SM.Matrix.rowVector = function(data) {
-	return new SM.Matrix(1,data.length, data);
-}
+	static rowVector(data: number[]) {
+		return new Matrix(1,data.length, [data]);
+	}
 
 /**
 	Given an array of numbers creates a column vector Matrix object.
@@ -46,13 +46,13 @@ SM.Matrix.rowVector = function(data) {
 	@param {Double[]} the matrix entries 
 	@return {Matrix} a X-by-1 matrix
 **/
-SM.Matrix.columnVector = function(data) {
+static columnVector(data: number[]) {
 
-	var columns = [];
+	var columns: number[][] = [];
 	for(var i  =0; i < data.length; i++) {
 		columns[i] = [data[i]];
 	}
-	return new SM.Matrix(data.length,1,columns);
+	return new Matrix(data.length,1,columns);
 }
 
 /**
@@ -60,8 +60,7 @@ SM.Matrix.columnVector = function(data) {
 	@param that {Matrix} Matrix to be added with.
 	@return {Matrix} The resulting sum
 **/
-SM.Matrix.prototype = {
-	add: function(that)
+	add(that: Matrix): Matrix
 	{
 		if(this.rows == that.rows && this.columns == that.columns)
 		{
@@ -73,18 +72,18 @@ SM.Matrix.prototype = {
 				}
 				
 			}
-			return new SM.Matrix(this.rows, this.columns, newvalues);
+			return new Matrix(this.rows, this.columns, newvalues);
 		}else{
 			throw new Error("Matrix size mismatch; Addition is not defined.");
 		}
-	},
+	}
 
 	/**
 		Subtract one matrix from another
 		@param {Matrix} that The term being subtracted
 		@return {Matrix} The difference matrix
 	**/
-	subtract: function(that)
+	subtract(that: Matrix): Matrix
 	{
 		if(this.rows == that.rows && this.columns == that.columns)
 		{
@@ -96,18 +95,18 @@ SM.Matrix.prototype = {
 				}
 				
 			}
-			return new SM.Matrix(this.rows, this.columns, newvalues);
+			return new Matrix(this.rows, this.columns, newvalues);
 		}else{
 			throw new Error("Matrix size mismatch; Addition is not defined.");
 		}
-	},
+	}
 
 	/**
 		Multiply one matrix by another
 		@param {Matrix} that The matrix being multiplied 
 		@return {Matrix} The product matrix
 	**/
-	multiply: function(that) 
+	multiply(that: Matrix): Matrix 
 	{
 		if(this.columns == that.rows)
 		{
@@ -126,12 +125,12 @@ SM.Matrix.prototype = {
 				}
 			}
 			
-			return new SM.Matrix(this.rows, that.columns, product);
+			return new Matrix(this.rows, that.columns, product);
 			
 		}else{
 			throw new Error("Matix size mismatch; Multiplication is not allowed.");
 		}
-	},
+	}
 
 	/**
 		Runs a naive Gaussian elimination on a Matrix or a Matrix and a sum vector.
@@ -142,8 +141,8 @@ SM.Matrix.prototype = {
 		
 	**/
 
-	naiveGaussian: function(sumcolumnvector) {
-		if(! (sumcolumnvector instanceof SM.Matrix))
+	naiveGaussian(sumcolumnvector: Matrix): Matrix {
+		if(! (sumcolumnvector instanceof Matrix))
 		{
 			throw new Error("Parameter expects a Matrix");
 		}
@@ -172,12 +171,9 @@ SM.Matrix.prototype = {
 					newvalues[i][j] = newvalues[i][j] - (xmult*newvalues[k][j]);
 				}
 				newsums[i] = newsums[i] - xmult*newsums[k];
-				//if(i == 3) {console.log(newsums[i]+""); }
 			}
 			
 		}
-		//console.log(newvalues+"");
-		//console.log(newsums+"");
 		var solutions = new Array(this.rows);
 		for(var i = this.rows-1; i >= 0; i--) {
 			var sum = newsums[i];
@@ -186,10 +182,10 @@ SM.Matrix.prototype = {
 			}
 			solutions[i] = [sum/newvalues[i][i]];
 		}
-		return new SM.Matrix(this.rows, 1, solutions);
+		return new Matrix(this.rows, 1, solutions);
 		
 		
-	},
+	}
 
 	/**
 		Runs a Gaussian elimination with scaled partial pivoting on a a Matrix and a sum vector.
@@ -200,8 +196,8 @@ SM.Matrix.prototype = {
 		P. 267
 	**/
 
-	scaledPartialPivotGaussian: function(sumvector) {
-		if(! (sumvector instanceof SM.Matrix))
+	scaledPartialPivotGaussian(sumvector: Matrix): Matrix {
+		if(! (sumvector instanceof Matrix))
 		{
 			throw new Error("Parameter expects a Matrix");
 		}
@@ -222,8 +218,8 @@ SM.Matrix.prototype = {
 		var newsums = sumvector.values.slice();
 		//console.log(newvalues+"");
 		//Setup for scale and index vectors
-		var index_vector = [];
-		var scale_vector = [];
+		var index_vector: number[] = [];
+		var scale_vector: number[] = [];
 		for(var i = 0; i < this.rows; i++)
 		{
 			index_vector[i] = i;
@@ -265,9 +261,9 @@ SM.Matrix.prototype = {
 			}
 			solutions[i] = [sum/newvalues[index_vector[i]][i]];
 		}
-		return new SM.Matrix(this.rows, 1, solutions);
+		return new Matrix(this.rows, 1, solutions);
 		
-	},
+	}
 
 	/**
 		An operation on graph adjacency matrix. 
@@ -277,7 +273,7 @@ SM.Matrix.prototype = {
 		@return {boolean} 
 	**/
 
-	findSink:function() { 
+	findSink() { 
 		var k =0;
 		for(var i=0; i < this.columns; i++) {
 			if( this.values[k][i] == 1) {
@@ -294,22 +290,22 @@ SM.Matrix.prototype = {
 			}
 		}
 		return true;
-	},
+	}
 
 	/**
 		Produces two matrices, L and U, which are lower triangular
 		matrice and upper triangular matrices respectively.
 		@return {Matrix[]} An array of Matrix objects, L = 
 	**/
-	LUdecomposition: function() {
+	LUdecomposition() {
 		if(this.rows != this.columns) {
 			throw new Error("Matrix incorrectly sized; Must be NxN matrix");
 		}
 		
-		var L = new SM.Matrix(this.rows, this.columns, []);
-		var U = new SM.Matrix(this.rows, this.columns, []);
+		var L = new Matrix(this.rows, this.columns, []);
+		var U = new Matrix(this.rows, this.columns, []);
 		var n = this.rows;
-		var zeroarray = [];
+		var zeroarray: number[] = [];
 		for(var k=0; k < n; k++) {
 			zeroarray[k] = 0;
 		}
@@ -341,7 +337,7 @@ SM.Matrix.prototype = {
 		}
 		
 		return [L,U];
-	},
+	}
 
 	
 
@@ -357,7 +353,7 @@ SM.Matrix.prototype = {
 			      [Infinity,5,10,Infinity,Infinity,0]];
 	      var mm = new Matrix(6,6,fwtest);
 	**/
-	FloydWarshall: function() {
+	FloydWarshall() {
 		if(this.rows != this.columns) {
 			throw new Error("Matrix incorrectly sized; Must be NxN matrix");
 		}
@@ -370,17 +366,17 @@ SM.Matrix.prototype = {
 					}
 				}
 			}
-			$("body").append("D(k)=<br>"+D);
+			// $("body").append("D(k)=<br>"+D);
 		}
 		return D;
-	},
+	}
 
 	/**
 		Provide a copy contructor
 		@return {Matrix} A copy of the existing matrix
 	**/
-	copy: function() {
-		var retmatrix = new SM.Matrix(this.rows,this.columns,[]);
+	copy(): Matrix {
+		var retmatrix = new Matrix(this.rows,this.columns,[]);
 		for(var i =0; i < this.rows; i++) {
 			retmatrix.values[i]=[];
 			for(var j =0; j < this.columns; j++) {
@@ -388,14 +384,14 @@ SM.Matrix.prototype = {
 			}
 		}
 		return retmatrix;
-	},
+	}
 
 	/**
 		Provides the Transpose matrix operation, i.e. flips the matrix
 		@return {Matrix} The transpose of the original matrix
 	**/
-	transpose: function() {
-		var retmatrix = new SM.Matrix(this.columns, this.rows,[]);
+	transpose(): Matrix {
+		var retmatrix = new Matrix(this.columns, this.rows,[]);
 		for(var i =0; i < this.columns; i++) {
 			retmatrix.values[i]=[];
 			for(var j =0; j < this.rows; j++) {
@@ -403,9 +399,9 @@ SM.Matrix.prototype = {
 			}
 		}
 		return retmatrix;
-	},
+	}
 	//I might rename this toHTML and create a different to string method
-	toHTML: function() {
+	toHTML(): string {
 		var retstring = "";
 		for(var i = 0; i < this.rows; i++) {
 			retstring += "| ";
@@ -415,9 +411,9 @@ SM.Matrix.prototype = {
 			retstring +="|<br />";
 		}
 		return retstring;
-	},
+	}
 
-	toString: function() {
+	toString(): string {
 		var retstring = "[ ";
 		for(var i = 0; i < this.rows; i++) {
 			retstring += "[ ";
