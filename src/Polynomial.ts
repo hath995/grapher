@@ -11,9 +11,6 @@ export class Polynomial {
 	terms: Term[];
 	serializeName?: string;
 	constructor(terms:Term[]) {
-		if(!(this instanceof Polynomial)) {
-			return new Polynomial(terms);
-		}
 		this.terms = terms;
 	}
 /**
@@ -112,7 +109,7 @@ static fromWebWorker(that) {
 			}
 		}
 		return retstring;
-	},
+	}
 
 	/**
 		Generates an array of serialized terms 
@@ -249,7 +246,7 @@ static fromWebWorker(that) {
 		@param {Integer} exponent the power to be raised by
 		@return {Polynomial} The resulting polynomial
 	**/
-	exponentiate(exponent: number) {
+	exponentiate(exponent: number): Polynomial {
 		var memoizedpowers = {};
 		var originalterm = this;
 		return (function exponentBySquares(value: Polynomial,exp: number) {
@@ -289,7 +286,7 @@ static fromWebWorker(that) {
 		for(var i =0; i < this.terms.length; i++) //for every term
 		{
 			var termvarsobj = this.terms[i].variable;
-			var termvarsordering = [];
+			var termvarsordering: string[] = [];
 			for(var v in termvarsobj) { //get variables from hash
 				termvarsordering.push(v);
 			}
@@ -300,7 +297,7 @@ static fromWebWorker(that) {
 			{
 				powers[varnames] = {}; 
 			}
-			var sortedpower = [];
+			var sortedpower: number[] = [];
 			var allzeroes = true;
 			for(var v in termvarsordering) { //for each variable
 				var sp = this.terms[i].power[this.terms[i].variable[termvarsordering[v]]];//find the variables power

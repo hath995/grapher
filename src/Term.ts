@@ -124,7 +124,18 @@ static fromWebWorker(that) {
 		}else if(Array.isArray(this.variable) || Array.isArray(that.variable)) {
 			return false;
 		}else{
-			return this.variable == that.variable;
+			for(let v in this.variable) {
+				if(!(v in that.variable)) {
+					return false;
+				}
+			}
+
+			for(let v in that.variable) {
+				if(!(v in this.variable)) {
+					return false;
+				}
+			}
+			return true;
 		}
 	}
 
@@ -474,7 +485,7 @@ static fromWebWorker(that) {
 	A point object representing a point in a 2-d plane
 	@class
 **/
-class Point {
+export class Point {
 	/**
 	 * 
 	 * @constructor
