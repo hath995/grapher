@@ -762,7 +762,7 @@ describe("Matrix.scaledPartialPivotGaussain", function () {
       [-6, -6],
     ]);
     let result = problem1.scaledPartialPivotGaussian(Matrix.columnVector([7, 6]));
-    assert.deepEqual(result.values, [[1],[2]]);
+    assert.deepEqual(result.values, [[9],[-10]]);
   });
   it("should solve problem 2", () => {
     var problem2 = new Matrix(3, 3, [

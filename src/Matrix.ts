@@ -161,7 +161,7 @@ static columnVector(data: number[]) {
 		{
 			newvalues[i] = this.values[i].slice();
 		}
-		var newsums = sumcolumnvector.transpose().values.slice(); //Probably need to address how I want to reference things for this matrix...
+		var newsums = sumcolumnvector.transpose().values[0].slice(); //Probably need to address how I want to reference things for this matrix...
 		//console.log(newvalues+"");
 		for(var k = 0; k < this.rows-1; k++) {
 			for(var i = k+1; i < this.rows; i++) {
@@ -215,7 +215,7 @@ static columnVector(data: number[]) {
 		{
 			newvalues[i] = this.values[i].slice();
 		}
-		var newsums = sumvector.values.slice();
+		var newsums = sumvector.transpose().values[0].slice();
 		//console.log(newvalues+"");
 		//Setup for scale and index vectors
 		var index_vector: number[] = [];
