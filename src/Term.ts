@@ -195,9 +195,7 @@ static fromWebWorker(that) {
 		}else if(summand instanceof Polynomial) {
 			return summand.add(this);
 		}else if(typeof summand === "number") {
-			for(var k in this.variable) {
-				break;
-			}
+			var k = Object.keys(this.variable)[0];
 			var constant = new Term(summand,0,k);
 			var newpoly = new Polynomial([this,constant]);
 			return newpoly; 

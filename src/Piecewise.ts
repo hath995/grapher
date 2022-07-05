@@ -202,7 +202,7 @@ export class PiecewiseFunction {
 	@param {number} zzero 0 by default, otherwise the slope of the second derivative of the initial function 
 	@return {PiecewiseFunction} The quadratic spline interpolation
 **/
-static createSecondDegSpline(points: Point[], zzero: number) {
+static createSecondDegSpline(points: Point[], zzero: number = 0) {
 	if(points.length < 2)
 	{
 		throw new Error("At least 2 points are required");
@@ -210,12 +210,7 @@ static createSecondDegSpline(points: Point[], zzero: number) {
 	var sortedpoints = points.slice();
 	sortedpoints.sort(Point.sorter);
 	var z: number[] = [];
-	if(zzero !== undefined)
-	{
-		z[0] = zzero;
-	}else{
-		z[0] = 0;
-	}
+	z[0] = zzero;
 	var functionarray: (Term | Polynomial)[] = [];
 	var rangearray: Range[] = [];
 	for(var i =0; i < sortedpoints.length-1; i++) {
