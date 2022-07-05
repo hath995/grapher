@@ -754,9 +754,46 @@ describe("Range", function() {
 
 // });
 
-// describe("Matrix.scaledPartialPivotGaussain", function() {
+describe("Matrix.scaledPartialPivotGaussain", function () {
 
-// });
+  it("should solve problem 1", () => {
+    var problem1 = new Matrix(2, 2, [
+      [3, 2],
+      [-6, -6],
+    ]);
+    let result = problem1.scaledPartialPivotGaussian(Matrix.columnVector([7, 6]));
+    assert.deepEqual(result.values, [[1],[2]]);
+  });
+  it("should solve problem 2", () => {
+    var problem2 = new Matrix(3, 3, [
+      [1, -1, 2],
+      [-2, 1, -1],
+      [4, -1, 2],
+    ]);
+    let result = problem2.scaledPartialPivotGaussian(Matrix.columnVector([-2, 2, 1]));
+    assert.deepEqual(result.values, [[1],[5],[1]]);
+  });
+  it("should solve problem 3", () => {
+    var problem3 = new Matrix(3, 3, [
+      [2, 4, -2],
+      [1, 3, 4],
+      [5, 2, 0],
+    ]);
+    let result = problem3.scaledPartialPivotGaussian(Matrix.columnVector([6, -1, 2]));
+    assert.deepEqual(result.values, [[0],[1],[-1]]);
+  });
+
+  it("should solve problem 4", () => {
+    var problem4 = new Matrix(4, 4, [
+      [0, 1, 1, -2],
+      [1, 2, -1, 0],
+      [2, 4, 1, -3],
+      [1,-4,-7, -1]
+    ]);
+    let result = problem4.scaledPartialPivotGaussian(Matrix.columnVector([-3, 2, -2, -19]));
+    assert.deepEqual(result.values, [[-1],[2],[1],[3]]);
+  });
+});
 
 // describe("Matrix.LUdecomposition",function() {
 

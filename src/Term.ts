@@ -463,8 +463,8 @@ static fromWebWorker(that) {
 		var termValues = termRe.exec(sterm);
 		if(termValues) {
 			this.coefficient = parseFloat(termValues[1]);
-			this.power = parseFloat(termValues[4]);
-			this.variable = termValues[3];
+			this.power = [parseFloat(termValues[4])];
+			this.variable = {[termValues[3]]: 0};
 		}
 		//returnv 
 	}
@@ -496,11 +496,8 @@ export class Point {
 	y: number;
 	constructor(x: number, y: number)
 	{
-		if(!(this instanceof Point)) {
-			return new Point(x,y);
-		}
-			this.x = parseFloat(x);
-			this.y = parseFloat(y);
+		this.x = x;
+		this.y = y;
 	}
 
 
